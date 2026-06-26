@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="ToyRobot.Tests/ToyRobot.Tests.csproj" Id="31fd74cc-5b56-463e-bee8-bf8a0be2adbe" />
   <Project Path="ToyRobot/ToyRobot.csproj" />
 </Solution>

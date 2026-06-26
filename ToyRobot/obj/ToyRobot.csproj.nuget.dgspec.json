@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Repos\\ToyRobot\\ToyRobot\\ToyRobot.csproj": {}
+    "F:\\JobApps\\RMSInterview\\Manual\\ToyRobot\\ToyRobot\\ToyRobot.csproj": {}
   },
   "projects": {
-    "C:\\Repos\\ToyRobot\\ToyRobot\\ToyRobot.csproj": {
+    "F:\\JobApps\\RMSInterview\\Manual\\ToyRobot\\ToyRobot\\ToyRobot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Repos\\ToyRobot\\ToyRobot\\ToyRobot.csproj",
+        "projectUniqueName": "F:\\JobApps\\RMSInterview\\Manual\\ToyRobot\\ToyRobot\\ToyRobot.csproj",
         "projectName": "ToyRobot",
-        "projectPath": "C:\\Repos\\ToyRobot\\ToyRobot\\ToyRobot.csproj",
+        "projectPath": "F:\\JobApps\\RMSInterview\\Manual\\ToyRobot\\ToyRobot\\ToyRobot.csproj",
         "packagesPath": "C:\\Users\\Frank\\.nuget\\packages\\",
-        "outputPath": "C:\\Repos\\ToyRobot\\ToyRobot\\obj\\",
+        "outputPath": "F:\\JobApps\\RMSInterview\\Manual\\ToyRobot\\ToyRobot\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
