@@ -9,5 +9,12 @@ namespace ToyRobot
         public int xPos { get; set; } 
         public int yPos { get; set; }
         public Direction direction { get; set; }
+
+        public Robot (){
+            xPos = -1;
+            yPos = -1;
+            direction = Direction.Unset;
+        }
+
     }
 }

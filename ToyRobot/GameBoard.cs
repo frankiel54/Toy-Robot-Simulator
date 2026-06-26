@@ -8,15 +8,15 @@ namespace ToyRobot
     {
         private int XBoundary { get; }
         private int YBoundary { get; }
-
         private Robot Robot { get; }
+        private bool RobotPlaced;
 
         public GameBoard(int x, int y, Robot robot) {
             XBoundary = x;
             YBoundary = y;
             Robot = robot;
+            RobotPlaced = false;
         }
-
 
         public bool Place(int x, int y, Direction direction)
         {
@@ -27,9 +27,11 @@ namespace ToyRobot
             Robot.yPos = y;
             Robot.xPos = x;
             Robot.direction = direction;
+            RobotPlaced = true;
 
             return true;
         }
+
 
     }
 }

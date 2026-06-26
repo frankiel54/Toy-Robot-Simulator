@@ -1,24 +1,38 @@
 ﻿
-bool placed = false;
+using ToyRobot;
+
+var GameBoard = new GameBoard(4,4, new Robot());
+
 Console.WriteLine("Toy Robot app");
+Console.WriteLine("Here are the valid commands:");
+Console.WriteLine("PLACE X,Y,Z");
+Console.WriteLine("MOVE");
+Console.WriteLine("LEFT");
+Console.WriteLine("RIGHT");
+Console.WriteLine("REPORT");
+
 while (true)
 {
-    Console.WriteLine("Here are the valid commands:");
-    Console.WriteLine("PLACE X,Y,Z");
-    Console.WriteLine("MOVE");
-    Console.WriteLine("LEFT");
-    Console.WriteLine("RIGHT");
-    Console.WriteLine("REPORT");
-    
-    if (!placed) { 
-        Console.WriteLine("Please enter an initial place command");
-    }
+    //if (!) { 
+    //    Console.WriteLine("Please enter an initial place command");
+    //}
 
-    string command = Console.ReadLine();
+    string input = Console.ReadLine() ?? string.Empty;
+    var parts = input.Split(' ', 2);
+    string command = parts[0].ToUpper();
+    string commandArgs = parts.Length > 1 ? parts[1] : string.Empty;
 
     switch (command)
     {
         case "PLACE":
+            if (CommandParser.TryParsePlaceArgs(commandArgs, out int x, out int y, out Direction direction))
+            {
+                GameBoard.Place(x, y, direction);
+            }
+            else
+            {
+                Console.WriteLine("\nInvalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
+            }
             break;
         case "MOVE":
             break;
