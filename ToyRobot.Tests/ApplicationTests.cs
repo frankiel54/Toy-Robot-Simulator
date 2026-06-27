@@ -106,12 +106,11 @@ namespace ToyRobot.Tests
         }
 
         [Fact]
-        public void Report_Before_Place_Should_Produce_No_Output()
+        public void Report_Before_Place_Should_Print_Not_Placed_Message()
         {
             var result = Run("REPORT");
 
-            Assert.DoesNotContain("-1", result);
-            Assert.DoesNotContain("Unset", result);
+            Assert.Contains("Robot has not been placed yet.", result);
         }
 
         [Fact]

@@ -31,61 +31,46 @@ namespace ToyRobot
 
                 var parsed = CommandParser.ParseCommand(line);
 
+                if (parsed.Type == CommandType.Place)
+                {
+                    if (parsed.Options is { } opts)
+                    {
+                        if (_simulator.Place(opts.X, opts.Y, opts.Facing))
+                            _output.WriteLine("Robot placed.");
+                        else
+                            _output.WriteLine("Invalid position — robot was not placed.");
+                    }
+                    else
+                    {
+                        _output.WriteLine("\nInvalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
+                    }
+                    continue;
+                }
+
+                if (parsed.Type != CommandType.Unknown && !_simulator.IsRobotPlaced())
+                {
+                    _output.WriteLine("Robot has not been placed yet.");
+                    continue;
+                }
+
                 switch (parsed.Type)
                 {
-                    case CommandType.Place:
-                        if (parsed.Options is { } opts)
-                        {
-                            if (_simulator.Place(opts.X, opts.Y, opts.Facing))
-                                _output.WriteLine("Robot placed.");
-                            else
-                                _output.WriteLine("Invalid position — robot was not placed.");
-                        }
-                        else
-                        {
-                            _output.WriteLine("\nInvalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
-                        }
-                        break;
                     case CommandType.Move:
-                        if (_simulator.IsRobotPlaced())
-                        {
-                            if (_simulator.MoveForward())
-                                _output.WriteLine("Moved forward.");
-                            else
-                                _output.WriteLine("Move blocked — robot is at the edge of the table.");
-                        }
+                        if (_simulator.MoveForward())
+                            _output.WriteLine("Moved forward.");
                         else
-                        {
-                            _output.WriteLine("Robot has not been placed yet.");
-                        }
+                            _output.WriteLine("Move blocked — robot is at the edge of the table.");
                         break;
                     case CommandType.Left:
-                        if (_simulator.IsRobotPlaced())
-                        {
-                            _simulator.TurnLeft();
-                            _output.WriteLine("Turned left.");
-                        }
-                        else
-                        {
-                            _output.WriteLine("Robot has not been placed yet.");
-                        }
+                        _simulator.TurnLeft();
+                        _output.WriteLine("Turned left.");
                         break;
                     case CommandType.Right:
-                        if (_simulator.IsRobotPlaced())
-                        {
-                            _simulator.TurnRight();
-                            _output.WriteLine("Turned right.");
-                        }
-                        else
-                        {
-                            _output.WriteLine("Robot has not been placed yet.");
-                        }
+                        _simulator.TurnRight();
+                        _output.WriteLine("Turned right.");
                         break;
                     case CommandType.Report:
-                        if (_simulator.IsRobotPlaced())
-                        {
-                            _output.WriteLine(_simulator.Report());
-                        }
+                        _output.WriteLine(_simulator.Report());
                         break;
                     default:
                         _output.WriteLine("\nInvalid selection. Please try again.");
