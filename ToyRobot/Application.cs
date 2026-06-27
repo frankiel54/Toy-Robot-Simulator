@@ -3,25 +3,33 @@ namespace ToyRobot
     public class Application
     {
         private readonly Simulator _simulator = new(new Robot());
+        private readonly TextReader _input;
+        private readonly TextWriter _output;
+
+        public Application() : this(Console.In, Console.Out) { }
+
+        public Application(TextReader input, TextWriter output)
+        {
+            _input = input;
+            _output = output;
+        }
 
         public void Run()
         {
-            Console.WriteLine("Toy Robot app");
-            Console.WriteLine("Here are the valid commands:");
-            Console.WriteLine("PLACE X,Y,Z");
-            Console.WriteLine("MOVE");
-            Console.WriteLine("LEFT");
-            Console.WriteLine("RIGHT");
-            Console.WriteLine("REPORT");
+            _output.WriteLine("Toy Robot app");
+            _output.WriteLine("Here are the valid commands:");
+            _output.WriteLine("PLACE X,Y,Z");
+            _output.WriteLine("MOVE");
+            _output.WriteLine("LEFT");
+            _output.WriteLine("RIGHT");
+            _output.WriteLine("REPORT");
 
             while (true)
             {
-                // TODO: Make some initial message that only show once
-                //if (!) {
-                //    Console.WriteLine("Please enter an initial place command");
-                //}
+                string? line = _input.ReadLine();
+                if (line is null) break;
 
-                var parsed = CommandParser.ParseCommand(Console.ReadLine() ?? string.Empty);
+                var parsed = CommandParser.ParseCommand(line);
 
                 // TODO: Add some more error messages for when things dont go right
                 switch (parsed.Type)
@@ -33,7 +41,7 @@ namespace ToyRobot
                         }
                         else
                         {
-                            Console.WriteLine("\nInvalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
+                            _output.WriteLine("\nInvalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
                         }
                         break;
                     case CommandType.Move:
@@ -57,11 +65,11 @@ namespace ToyRobot
                     case CommandType.Report:
                         if (_simulator.IsRobotPlaced())
                         {
-                            Console.WriteLine(_simulator.Report());
+                            _output.WriteLine(_simulator.Report());
                         }
                         break;
                     default:
-                        Console.WriteLine("\nInvalid selection. Please try again.");
+                        _output.WriteLine("\nInvalid selection. Please try again.");
                         break;
                 }
             }
