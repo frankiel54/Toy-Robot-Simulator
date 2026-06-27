@@ -31,13 +31,15 @@ namespace ToyRobot
 
                 var parsed = CommandParser.ParseCommand(line);
 
-                // TODO: Add some more error messages for when things dont go right
                 switch (parsed.Type)
                 {
                     case CommandType.Place:
                         if (parsed.Options is { } opts)
                         {
-                            _simulator.Place(opts.X, opts.Y, opts.Facing);
+                            if (_simulator.Place(opts.X, opts.Y, opts.Facing))
+                                _output.WriteLine("Robot placed.");
+                            else
+                                _output.WriteLine("Invalid position — robot was not placed.");
                         }
                         else
                         {
@@ -47,19 +49,36 @@ namespace ToyRobot
                     case CommandType.Move:
                         if (_simulator.IsRobotPlaced())
                         {
-                            _simulator.MoveForward();
+                            if (_simulator.MoveForward())
+                                _output.WriteLine("Moved forward.");
+                            else
+                                _output.WriteLine("Move blocked — robot is at the edge of the table.");
+                        }
+                        else
+                        {
+                            _output.WriteLine("Robot has not been placed yet.");
                         }
                         break;
                     case CommandType.Left:
                         if (_simulator.IsRobotPlaced())
                         {
                             _simulator.TurnLeft();
+                            _output.WriteLine("Turned left.");
+                        }
+                        else
+                        {
+                            _output.WriteLine("Robot has not been placed yet.");
                         }
                         break;
                     case CommandType.Right:
                         if (_simulator.IsRobotPlaced())
                         {
                             _simulator.TurnRight();
+                            _output.WriteLine("Turned right.");
+                        }
+                        else
+                        {
+                            _output.WriteLine("Robot has not been placed yet.");
                         }
                         break;
                     case CommandType.Report:

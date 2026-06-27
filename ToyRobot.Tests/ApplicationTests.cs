@@ -22,11 +22,20 @@ namespace ToyRobot.Tests
         }
 
         [Fact]
-        public void Place_Valid_Should_Place_Robot()
+        public void Place_Valid_Should_Print_Success_And_Place_Robot()
         {
             var result = Run("PLACE 1,2,NORTH", "REPORT");
 
+            Assert.Contains("Robot placed.", result);
             Assert.Contains("1, 2, North", result);
+        }
+
+        [Fact]
+        public void Place_Out_Of_Bounds_Should_Print_Error()
+        {
+            var result = Run("PLACE 9,9,NORTH");
+
+            Assert.Contains("Invalid position", result);
         }
 
         [Fact]
@@ -38,43 +47,61 @@ namespace ToyRobot.Tests
         }
 
         [Fact]
-        public void Move_Before_Place_Should_Not_Crash_Or_Report_Position()
+        public void Move_Before_Place_Should_Print_Not_Placed_Message()
         {
-            var result = Run("MOVE", "REPORT");
+            var result = Run("MOVE");
 
-            Assert.DoesNotContain("0, 0", result);
-            Assert.DoesNotContain("-1", result);
+            Assert.Contains("Robot has not been placed yet.", result);
         }
 
         [Fact]
-        public void Move_Should_Advance_Position()
+        public void Move_Should_Print_Success_And_Advance_Position()
         {
             var result = Run("PLACE 1,1,NORTH", "MOVE", "REPORT");
 
+            Assert.Contains("Moved forward.", result);
             Assert.Contains("1, 2, North", result);
         }
 
         [Fact]
-        public void Move_Should_Not_Go_Out_Of_Bounds()
+        public void Move_Should_Print_Blocked_When_At_Edge()
         {
-            var result = Run("PLACE 0,4,NORTH", "MOVE", "REPORT");
+            var result = Run("PLACE 0,4,NORTH", "MOVE");
 
-            Assert.Contains("0, 4, North", result);
+            Assert.Contains("Move blocked", result);
         }
 
         [Fact]
-        public void Left_Should_Rotate_Direction()
+        public void Left_Before_Place_Should_Print_Not_Placed_Message()
+        {
+            var result = Run("LEFT");
+
+            Assert.Contains("Robot has not been placed yet.", result);
+        }
+
+        [Fact]
+        public void Left_Should_Print_Feedback_And_Rotate_Direction()
         {
             var result = Run("PLACE 2,2,NORTH", "LEFT", "REPORT");
 
+            Assert.Contains("Turned left.", result);
             Assert.Contains("2, 2, West", result);
         }
 
         [Fact]
-        public void Right_Should_Rotate_Direction()
+        public void Right_Before_Place_Should_Print_Not_Placed_Message()
+        {
+            var result = Run("RIGHT");
+
+            Assert.Contains("Robot has not been placed yet.", result);
+        }
+
+        [Fact]
+        public void Right_Should_Print_Feedback_And_Rotate_Direction()
         {
             var result = Run("PLACE 2,2,NORTH", "RIGHT", "REPORT");
 
+            Assert.Contains("Turned right.", result);
             Assert.Contains("2, 2, East", result);
         }
 
