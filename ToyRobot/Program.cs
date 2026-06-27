@@ -13,15 +13,15 @@ Console.WriteLine("REPORT");
 
 while (true)
 {
+    // TODO: Make some initial message that only show once
     //if (!) { 
     //    Console.WriteLine("Please enter an initial place command");
     //}
 
-    string input = Console.ReadLine() ?? string.Empty;
-    var parts = input.Split(' ', 2);
-    string command = parts[0].ToUpper();
-    string commandArgs = parts.Length > 1 ? parts[1] : string.Empty;
+    CommandParser.ParseCommand(Console.ReadLine() ?? string.Empty, out string command, out string commandArgs);
 
+
+    // TODO: Add some more error messages for when things dont go right
     switch (command)
     {
         case "PLACE":
@@ -35,12 +35,28 @@ while (true)
             }
             break;
         case "MOVE":
+            if (GameBoard.IsRobotPlaced()) {
+                GameBoard.MoveForward();
+            }
             break;
         case "LEFT":
+            if (GameBoard.IsRobotPlaced())
+            {
+                GameBoard.TurnLeft();
+            }
             break;
         case "RIGHT":
+            if (GameBoard.IsRobotPlaced())
+            {
+                GameBoard.TurnRight();
+            }
             break;
         case "REPORT":
+            if (GameBoard.IsRobotPlaced())
+            {
+                var report = GameBoard.Report();
+                Console.WriteLine(report);
+            }
             break;
         default:
             Console.WriteLine("\nInvalid selection. Please try again.");

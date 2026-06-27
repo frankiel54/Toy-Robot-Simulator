@@ -2,6 +2,15 @@ namespace ToyRobot
 {
     public static class CommandParser
     {
+        // TODO: Error handling
+        public static void ParseCommand(string input, out string command, out string args)
+        {
+            var parts = input.Split(' ', 2);
+            command = parts[0].ToUpper();
+            args = parts.Length > 1 ? parts[1] : string.Empty;
+        }
+
+        // TODO: Add error handling
         public static bool TryParsePlaceArgs(string args, out int x, out int y, out Direction direction)
         {
             x = 0; y = 0; direction = default;

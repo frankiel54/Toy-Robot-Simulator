@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ToyRobot
 {
-    internal class Commands
+    public class Commands
     {
     }
 }
