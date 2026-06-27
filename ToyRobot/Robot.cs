@@ -2,9 +2,9 @@ namespace ToyRobot
 {
     public class Robot
     {
-        public int XPos { get; set; }
-        public int YPos { get; set; }
-        public Direction Direction { get; set; }
+        public int XPos { get; private set; }
+        public int YPos { get; private set; }
+        public Direction Direction { get; private set; }
 
         public Robot()
         {
@@ -12,6 +12,29 @@ namespace ToyRobot
             YPos = -1;
             Direction = Direction.Unset;
         }
+
+        public Robot(int xPos, int yPos, Direction direction)
+        {
+            XPos = xPos;
+            YPos = yPos;
+            Direction = direction;
+        }
+
+        public void PlaceAt(int x, int y, Direction direction)
+        {
+            XPos = x;
+            YPos = y;
+            Direction = direction;
+        }
+
+        public void MoveTo(int x, int y)
+        {
+            XPos = x;
+            YPos = y;
+        }
+
+        public void TurnLeft()  => Direction = Direction.TurnLeft();
+        public void TurnRight() => Direction = Direction.TurnRight();
 
         public (int x, int y) GetNextPosition() => Direction switch
         {

@@ -1,8 +1,5 @@
-using System.Reflection;
-using System.Runtime.InteropServices;
 using ToyRobot;
 using Xunit;
-using Xunit.v3;
 
 namespace ToyRobot.Tests
 {
@@ -11,59 +8,52 @@ namespace ToyRobot.Tests
         [Fact]
         public void Place_Should_Successfully_Execute()
         {
-            var robot = new Robot ();
-            var gameBoard = new Simulator(robot);
-            var result = gameBoard.Place(1,2, Direction.North);
+            var simulator = new Simulator();
+            var result = simulator.Place(1, 2, Direction.North);
 
-            Assert.Equal(Direction.North, robot.Direction);
-            Assert.Equal(1, robot.XPos);
-            Assert.Equal(2, robot.YPos);
+            Assert.Equal(Direction.North, simulator.Facing);
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(2, simulator.Y);
             Assert.True(result);
         }
 
         [Fact]
         public void Place_Should_Return_False_And_Not_Set_Robot()
         {
-            var robot = new Robot();
+            var simulator = new Simulator();
+            var result = simulator.Place(1, 6, Direction.North);
 
-            var gameBoard = new Simulator(robot);
-            var result = gameBoard.Place(1, 6, Direction.North);
-
-            Assert.Equal(Direction.Unset, robot.Direction);
-            Assert.Equal(-1, robot.XPos);
-            Assert.Equal(-1, robot.YPos);
+            Assert.Equal(Direction.Unset, simulator.Facing);
+            Assert.Equal(-1, simulator.X);
+            Assert.Equal(-1, simulator.Y);
             Assert.False(result);
         }
 
         [Fact]
         public void Move_Should_Move_Position_Forward()
         {
-            var robot = new Robot();
+            var simulator = new Simulator();
+            simulator.Place(1, 1, Direction.North);
 
-            var gameBoard = new Simulator(robot);
-            gameBoard.Place(1, 1, Direction.North);
+            var result = simulator.MoveForward();
 
-            var result = gameBoard.MoveForward();
-
-            Assert.Equal(Direction.North, robot.Direction);
-            Assert.Equal(1, robot.XPos);
-            Assert.Equal(2, robot.YPos);
+            Assert.Equal(Direction.North, simulator.Facing);
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(2, simulator.Y);
             Assert.True(result);
         }
 
         [Fact]
         public void Move_Should_Not_Move_If_Going_Out_Of_Bounds()
         {
-            var robot = new Robot();
+            var simulator = new Simulator();
+            simulator.Place(0, 4, Direction.North);
 
-            var gameBoard = new Simulator(robot);
-            gameBoard.Place(0, 4, Direction.North);
+            var result = simulator.MoveForward();
 
-            var result = gameBoard.MoveForward();
-
-            Assert.Equal(Direction.North, robot.Direction);
-            Assert.Equal(0, robot.XPos);
-            Assert.Equal(4, robot.YPos);
+            Assert.Equal(Direction.North, simulator.Facing);
+            Assert.Equal(0, simulator.X);
+            Assert.Equal(4, simulator.Y);
             Assert.False(result);
         }
 
@@ -71,16 +61,14 @@ namespace ToyRobot.Tests
         [MemberData(nameof(TurnLeftData))]
         public void Turn_Left_Should_Turn_Left(Direction start, Direction expected)
         {
-            var robot = new Robot();
+            var simulator = new Simulator();
+            simulator.Place(1, 1, start);
 
-            var gameBoard = new Simulator(robot);
-            gameBoard.Place(1, 1, start);
+            simulator.TurnLeft();
 
-            gameBoard.TurnLeft();
-
-            Assert.Equal(expected, robot.Direction);
-            Assert.Equal(1, robot.XPos);
-            Assert.Equal(1, robot.YPos);
+            Assert.Equal(expected, simulator.Facing);
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(1, simulator.Y);
         }
 
         public static TheoryData<Direction, Direction> TurnLeftData() => new()
@@ -95,16 +83,14 @@ namespace ToyRobot.Tests
         [MemberData(nameof(TurnRightData))]
         public void Turn_Left_Should_Turn_Right(Direction start, Direction expected)
         {
-            var robot = new Robot();
+            var simulator = new Simulator();
+            simulator.Place(1, 1, start);
 
-            var gameBoard = new Simulator(robot);
-            gameBoard.Place(1, 1, start);
+            simulator.TurnRight();
 
-            gameBoard.TurnRight();
-
-            Assert.Equal(expected, robot.Direction);
-            Assert.Equal(1, robot.XPos);
-            Assert.Equal(1, robot.YPos);
+            Assert.Equal(expected, simulator.Facing);
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(1, simulator.Y);
         }
 
         public static TheoryData<Direction, Direction> TurnRightData() => new()
@@ -115,18 +101,14 @@ namespace ToyRobot.Tests
             { Direction.North, Direction.East },
         };
 
-
         [Theory]
         [MemberData(nameof(ReportData))]
         public void Report(int x, int y, Direction direction, string expected)
         {
-            var robot = new Robot();
+            var simulator = new Simulator();
+            simulator.Place(x, y, direction);
 
-            var gameBoard = new Simulator(robot);
-            gameBoard.Place(x, y, direction);
-
-
-            Assert.Equal(expected, gameBoard.Report());
+            Assert.Equal(expected, simulator.Report());
         }
 
         public static TheoryData<int, int, Direction, string> ReportData() => new()
@@ -135,6 +117,5 @@ namespace ToyRobot.Tests
             { 3, 3, Direction.West, "3, 3, West"},
             { 3, 1, Direction.North, "3, 1, North"},
         };
-
     }
 }

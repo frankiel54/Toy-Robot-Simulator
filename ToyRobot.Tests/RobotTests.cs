@@ -9,7 +9,7 @@ namespace ToyRobot.Tests
         public void GetNextPosition_Should_Return_Correct_Position(
             int startX, int startY, Direction direction, int expectedX, int expectedY)
         {
-            var robot = new Robot { XPos = startX, YPos = startY, Direction = direction };
+            var robot = new Robot(startX, startY, direction);
 
             var (x, y) = robot.GetNextPosition();
 

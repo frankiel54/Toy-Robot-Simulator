@@ -2,14 +2,12 @@ namespace ToyRobot
 {
     public class Simulator
     {
-        private Robot Robot { get; }
+        private Robot Robot { get; } = new Robot();
         private bool RobotPlaced { get; set; }
-        private Table Table { get; set; }
+        private Table Table { get; }
 
-        public Simulator(Robot robot, int width = 5, int height = 5)
+        public Simulator(int width = 5, int height = 5)
         {
-            Robot = robot;
-            RobotPlaced = false;
             Table = new Table(width, height);
         }
 
@@ -18,17 +16,15 @@ namespace ToyRobot
             if (!Table.IsValidPosition(x, y))
                 return false;
 
-            Robot.XPos = x;
-            Robot.YPos = y;
-            Robot.Direction = direction;
+            Robot.PlaceAt(x, y, direction);
             RobotPlaced = true;
 
             return true;
         }
 
-        public void TurnLeft() => Robot.Direction = Robot.Direction.TurnLeft();
+        public void TurnLeft()  => Robot.TurnLeft();
 
-        public void TurnRight() => Robot.Direction = Robot.Direction.TurnRight();
+        public void TurnRight() => Robot.TurnRight();
 
         public bool MoveForward()
         {
@@ -36,13 +32,16 @@ namespace ToyRobot
 
             if (!Table.IsValidPosition(x, y)) return false;
 
-            Robot.XPos = x;
-            Robot.YPos = y;
+            Robot.MoveTo(x, y);
             return true;
         }
 
         public string Report() => $"{Robot.XPos}, {Robot.YPos}, {Robot.Direction}";
 
         public bool IsRobotPlaced() => RobotPlaced;
+
+        public int X => Robot.XPos;
+        public int Y => Robot.YPos;
+        public Direction Facing => Robot.Direction;
     }
 }

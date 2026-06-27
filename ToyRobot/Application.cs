@@ -2,7 +2,7 @@ namespace ToyRobot
 {
     public class Application
     {
-        private readonly Simulator _simulator = new(new Robot());
+        private readonly Simulator _simulator = new();
         private readonly TextReader _input;
         private readonly TextWriter _output;
 
