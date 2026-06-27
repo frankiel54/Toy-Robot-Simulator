@@ -4,23 +4,21 @@ using System.Text;
 
 namespace ToyRobot
 {
-    public class GameBoard
+    public class Simulator
     {
-        private int XBoundary { get; }
-        private int YBoundary { get; }
         private Robot Robot { get; }
         private bool RobotPlaced { get; set; }
+        private Table Table { get; set; }
 
-        public GameBoard(int x, int y, Robot robot) {
-            XBoundary = x;
-            YBoundary = y;
+        public Simulator(Robot robot, int x = 5, int y = 5 ) {
             Robot = robot;
             RobotPlaced = false;
+            Table = new Table(x, y);
         }
 
         public bool Place(int x, int y, Direction direction)
         {
-            if (x > XBoundary || y > YBoundary) {
+            if (!Table.IsValidPosition(x,y)) {
                 return false;
             }
 
@@ -70,7 +68,7 @@ namespace ToyRobot
                     break;
             }
 
-            if (x < 0 || x > XBoundary || y < 0 || y > YBoundary) {
+            if (!Table.IsValidPosition(x, y)) {
                 return false;
             }
 
@@ -83,7 +81,7 @@ namespace ToyRobot
 
         public string Report()
         {
-            return $"{Robot.xPos}, {Robot.yPos}, {Robot.direction.ToString()}";
+            return $"{Robot.xPos}, {Robot.yPos}, {Robot.direction}";
         }
 
         public bool IsRobotPlaced () { return RobotPlaced; }

@@ -1,8 +1,6 @@
 ﻿
 using ToyRobot;
 
-var GameBoard = new GameBoard(4,4, new Robot());
-
 Console.WriteLine("Toy Robot app");
 Console.WriteLine("Here are the valid commands:");
 Console.WriteLine("PLACE X,Y,Z");
@@ -10,6 +8,8 @@ Console.WriteLine("MOVE");
 Console.WriteLine("LEFT");
 Console.WriteLine("RIGHT");
 Console.WriteLine("REPORT");
+
+var GameBoard = new Simulator(new Robot());
 
 while (true)
 {

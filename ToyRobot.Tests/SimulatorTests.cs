@@ -12,7 +12,7 @@ namespace ToyRobot.Tests
         public void Place_Should_Successfully_Execute()
         {
             var robot = new Robot ();
-            var gameBoard = new GameBoard(4 ,4, robot);
+            var gameBoard = new Simulator(robot);
             var result = gameBoard.Place(1,2, Direction.North);
 
             Assert.Equal(Direction.North, robot.direction);
@@ -26,7 +26,7 @@ namespace ToyRobot.Tests
         {
             var robot = new Robot();
 
-            var gameBoard = new GameBoard(4, 4, robot);
+            var gameBoard = new Simulator(robot);
             var result = gameBoard.Place(1, 6, Direction.North);
 
             Assert.Equal(Direction.Unset, robot.direction);
@@ -40,7 +40,7 @@ namespace ToyRobot.Tests
         {
             var robot = new Robot();
 
-            var gameBoard = new GameBoard(4, 4, robot);
+            var gameBoard = new Simulator(robot);
             gameBoard.Place(1, 1, Direction.North);
 
             var result = gameBoard.MoveForward();
@@ -56,7 +56,7 @@ namespace ToyRobot.Tests
         {
             var robot = new Robot();
 
-            var gameBoard = new GameBoard(4, 4, robot);
+            var gameBoard = new Simulator(robot);
             gameBoard.Place(0, 4, Direction.North);
 
             var result = gameBoard.MoveForward();
@@ -73,7 +73,7 @@ namespace ToyRobot.Tests
         {
             var robot = new Robot();
 
-            var gameBoard = new GameBoard(4, 4, robot);
+            var gameBoard = new Simulator(robot);
             gameBoard.Place(1, 1, start);
 
             gameBoard.TurnLeft();
@@ -97,7 +97,7 @@ namespace ToyRobot.Tests
         {
             var robot = new Robot();
 
-            var gameBoard = new GameBoard(4, 4, robot);
+            var gameBoard = new Simulator(robot);
             gameBoard.Place(1, 1, start);
 
             gameBoard.TurnRight();
@@ -122,7 +122,7 @@ namespace ToyRobot.Tests
         {
             var robot = new Robot();
 
-            var gameBoard = new GameBoard(4, 4, robot);
+            var gameBoard = new Simulator(robot);
             gameBoard.Place(x, y, direction);
 
 
