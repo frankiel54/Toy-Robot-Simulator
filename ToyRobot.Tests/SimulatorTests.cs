@@ -15,9 +15,9 @@ namespace ToyRobot.Tests
             var gameBoard = new Simulator(robot);
             var result = gameBoard.Place(1,2, Direction.North);
 
-            Assert.Equal(Direction.North, robot.direction);
-            Assert.Equal(1, robot.xPos);
-            Assert.Equal(2, robot.yPos);
+            Assert.Equal(Direction.North, robot.Direction);
+            Assert.Equal(1, robot.XPos);
+            Assert.Equal(2, robot.YPos);
             Assert.True(result);
         }
 
@@ -29,9 +29,9 @@ namespace ToyRobot.Tests
             var gameBoard = new Simulator(robot);
             var result = gameBoard.Place(1, 6, Direction.North);
 
-            Assert.Equal(Direction.Unset, robot.direction);
-            Assert.Equal(-1, robot.xPos);
-            Assert.Equal(-1, robot.yPos);
+            Assert.Equal(Direction.Unset, robot.Direction);
+            Assert.Equal(-1, robot.XPos);
+            Assert.Equal(-1, robot.YPos);
             Assert.False(result);
         }
 
@@ -45,9 +45,9 @@ namespace ToyRobot.Tests
 
             var result = gameBoard.MoveForward();
 
-            Assert.Equal(Direction.North, robot.direction);
-            Assert.Equal(1, robot.xPos);
-            Assert.Equal(2, robot.yPos);
+            Assert.Equal(Direction.North, robot.Direction);
+            Assert.Equal(1, robot.XPos);
+            Assert.Equal(2, robot.YPos);
             Assert.True(result);
         }
 
@@ -61,9 +61,9 @@ namespace ToyRobot.Tests
 
             var result = gameBoard.MoveForward();
 
-            Assert.Equal(Direction.North, robot.direction);
-            Assert.Equal(0, robot.xPos);
-            Assert.Equal(4, robot.yPos);
+            Assert.Equal(Direction.North, robot.Direction);
+            Assert.Equal(0, robot.XPos);
+            Assert.Equal(4, robot.YPos);
             Assert.False(result);
         }
 
@@ -78,9 +78,9 @@ namespace ToyRobot.Tests
 
             gameBoard.TurnLeft();
 
-            Assert.Equal(expected, robot.direction);
-            Assert.Equal(1, robot.xPos);
-            Assert.Equal(1, robot.yPos);
+            Assert.Equal(expected, robot.Direction);
+            Assert.Equal(1, robot.XPos);
+            Assert.Equal(1, robot.YPos);
         }
 
         public static TheoryData<Direction, Direction> TurnLeftData() => new()
@@ -102,9 +102,9 @@ namespace ToyRobot.Tests
 
             gameBoard.TurnRight();
 
-            Assert.Equal(expected, robot.direction);
-            Assert.Equal(1, robot.xPos);
-            Assert.Equal(1, robot.yPos);
+            Assert.Equal(expected, robot.Direction);
+            Assert.Equal(1, robot.XPos);
+            Assert.Equal(1, robot.YPos);
         }
 
         public static TheoryData<Direction, Direction> TurnRightData() => new()

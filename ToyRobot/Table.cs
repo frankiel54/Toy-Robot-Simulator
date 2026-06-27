@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ToyRobot
 {
     public class Table
     {
-        private int Width;
-        private int Height;
+        private int _width;
+        private int _height;
 
         public Table(int width = 5, int height = 5)
         {
-            Width = width;
-            Height = height;
+            _width = width;
+            _height = height;
         }
 
         public bool IsValidPosition(int x, int y) =>
-            x >= 0 && x < Width && y >= 0 && y < Height;
+            x >= 0 && x < _width && y >= 0 && y < _height;
     }
 }

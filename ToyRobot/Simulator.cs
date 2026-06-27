@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ToyRobot
 {
     public class Simulator
@@ -10,29 +6,29 @@ namespace ToyRobot
         private bool RobotPlaced { get; set; }
         private Table Table { get; set; }
 
-        public Simulator(Robot robot, int x = 5, int y = 5 ) {
+        public Simulator(Robot robot, int width = 5, int height = 5)
+        {
             Robot = robot;
             RobotPlaced = false;
-            Table = new Table(x, y);
+            Table = new Table(width, height);
         }
 
         public bool Place(int x, int y, Direction direction)
         {
-            if (!Table.IsValidPosition(x,y)) {
+            if (!Table.IsValidPosition(x, y))
                 return false;
-            }
 
-            Robot.yPos = y;
-            Robot.xPos = x;
-            Robot.direction = direction;
+            Robot.XPos = x;
+            Robot.YPos = y;
+            Robot.Direction = direction;
             RobotPlaced = true;
 
             return true;
         }
 
-        public void TurnLeft() => Robot.direction = Robot.direction.TurnLeft();
+        public void TurnLeft() => Robot.Direction = Robot.Direction.TurnLeft();
 
-        public void TurnRight() => Robot.direction = Robot.direction.TurnRight();
+        public void TurnRight() => Robot.Direction = Robot.Direction.TurnRight();
 
         public bool MoveForward()
         {
@@ -40,17 +36,13 @@ namespace ToyRobot
 
             if (!Table.IsValidPosition(x, y)) return false;
 
-            Robot.xPos = x;
-            Robot.yPos = y;
+            Robot.XPos = x;
+            Robot.YPos = y;
             return true;
         }
 
+        public string Report() => $"{Robot.XPos}, {Robot.YPos}, {Robot.Direction}";
 
-        public string Report()
-        {
-            return $"{Robot.xPos}, {Robot.yPos}, {Robot.direction}";
-        }
-
-        public bool IsRobotPlaced () { return RobotPlaced; }
+        public bool IsRobotPlaced() => RobotPlaced;
     }
 }

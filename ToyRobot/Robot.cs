@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ToyRobot
 {
     public class Robot
     {
-        public int xPos { get; set; } 
-        public int yPos { get; set; }
-        public Direction direction { get; set; }
+        public int XPos { get; set; }
+        public int YPos { get; set; }
+        public Direction Direction { get; set; }
 
         public Robot()
         {
-            xPos = -1;
-            yPos = -1;
-            direction = Direction.Unset;
+            XPos = -1;
+            YPos = -1;
+            Direction = Direction.Unset;
         }
 
-        public (int x, int y) GetNextPosition() => direction switch
+        public (int x, int y) GetNextPosition() => Direction switch
         {
-            Direction.North => (xPos,     yPos + 1),
-            Direction.South => (xPos,     yPos - 1),
-            Direction.East  => (xPos + 1, yPos    ),
-            Direction.West  => (xPos - 1, yPos    ),
-            _               => (xPos,     yPos    ),
+            Direction.North => (XPos,     YPos + 1),
+            Direction.South => (XPos,     YPos - 1),
+            Direction.East  => (XPos + 1, YPos    ),
+            Direction.West  => (XPos - 1, YPos    ),
+            _               => (XPos,     YPos    ),
         };
-
     }
 }
