@@ -30,51 +30,18 @@ namespace ToyRobot
             return true;
         }
 
-        public void TurnLeft() {
-            if (Robot.direction == Direction.North) {
-                Robot.direction = Direction.West;
-                return;
-            }
-            Robot.direction = Robot.direction - 1;
-        }
+        public void TurnLeft() => Robot.direction = Robot.direction.TurnLeft();
 
-        public void TurnRight()
-        {
-            if (Robot.direction == Direction.West)
-            {
-                Robot.direction = Direction.North;
-                return;
-            }
-            Robot.direction = Robot.direction + 1;
-        }
+        public void TurnRight() => Robot.direction = Robot.direction.TurnRight();
 
         public bool MoveForward()
         {
-            var x = Robot.xPos;
-            var y = Robot.yPos;
+            var (x, y) = Robot.GetNextPosition();
 
-            switch (Robot.direction) {
-                case Direction.North:
-                    y = y + 1;
-                    break;
-                case Direction.South:
-                    y = y - 1;
-                    break;
-                case Direction.East:
-                    x = x + 1;
-                    break;
-                case Direction.West:
-                    x = x - 1;
-                    break;
-            }
-
-            if (!Table.IsValidPosition(x, y)) {
-                return false;
-            }
+            if (!Table.IsValidPosition(x, y)) return false;
 
             Robot.xPos = x;
             Robot.yPos = y;
-
             return true;
         }
 
