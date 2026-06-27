@@ -2,15 +2,33 @@ namespace ToyRobot
 {
     public static class CommandParser
     {
-        // TODO: Error handling
-        public static void ParseCommand(string input, out string command, out string args)
+        public static ParsedCommand ParseCommand(string input)
         {
             var parts = input.Split(' ', 2);
-            command = parts[0].ToUpper();
-            args = parts.Length > 1 ? parts[1] : string.Empty;
+            var name = parts[0].ToUpper();
+            var rawArgs = parts.Length > 1 ? parts[1] : string.Empty;
+
+            var type = name switch
+            {
+                "PLACE"  => CommandType.Place,
+                "MOVE"   => CommandType.Move,
+                "LEFT"   => CommandType.Left,
+                "RIGHT"  => CommandType.Right,
+                "REPORT" => CommandType.Report,
+                _        => CommandType.Unknown,
+            };
+
+            if (type == CommandType.Place)
+            {
+                CommandOptions? options = TryParsePlaceArgs(rawArgs, out int x, out int y, out Direction facing)
+                    ? new CommandOptions { X = x, Y = y, Facing = facing }
+                    : null;
+                return new ParsedCommand(CommandType.Place, options);
+            }
+
+            return new ParsedCommand(type);
         }
 
-        // TODO: Add error handling
         public static bool TryParsePlaceArgs(string args, out int x, out int y, out Direction direction)
         {
             x = 0; y = 0; direction = default;

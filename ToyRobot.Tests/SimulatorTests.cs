@@ -6,7 +6,7 @@ using Xunit.v3;
 
 namespace ToyRobot.Tests
 {
-    public class GameBoardTests
+    public class SimulatorTests
     {
         [Fact]
         public void Place_Should_Successfully_Execute()

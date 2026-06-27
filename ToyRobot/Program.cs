@@ -9,7 +9,7 @@ Console.WriteLine("LEFT");
 Console.WriteLine("RIGHT");
 Console.WriteLine("REPORT");
 
-var GameBoard = new Simulator(new Robot());
+var Simulator = new Simulator(new Robot());
 
 while (true)
 {
@@ -18,43 +18,42 @@ while (true)
     //    Console.WriteLine("Please enter an initial place command");
     //}
 
-    CommandParser.ParseCommand(Console.ReadLine() ?? string.Empty, out string command, out string commandArgs);
-
+    var parsed = CommandParser.ParseCommand(Console.ReadLine() ?? string.Empty);
 
     // TODO: Add some more error messages for when things dont go right
-    switch (command)
+    switch (parsed.Type)
     {
-        case "PLACE":
-            if (CommandParser.TryParsePlaceArgs(commandArgs, out int x, out int y, out Direction direction))
+        case CommandType.Place:
+            if (parsed.Options is { } opts)
             {
-                GameBoard.Place(x, y, direction);
+                Simulator.Place(opts.X, opts.Y, opts.Facing);
             }
             else
             {
                 Console.WriteLine("\nInvalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
             }
             break;
-        case "MOVE":
-            if (GameBoard.IsRobotPlaced()) {
-                GameBoard.MoveForward();
+        case CommandType.Move:
+            if (Simulator.IsRobotPlaced()) {
+                Simulator.MoveForward();
             }
             break;
-        case "LEFT":
-            if (GameBoard.IsRobotPlaced())
+        case CommandType.Left:
+            if (Simulator.IsRobotPlaced())
             {
-                GameBoard.TurnLeft();
+                Simulator.TurnLeft();
             }
             break;
-        case "RIGHT":
-            if (GameBoard.IsRobotPlaced())
+        case CommandType.Right:
+            if (Simulator.IsRobotPlaced())
             {
-                GameBoard.TurnRight();
+                Simulator.TurnRight();
             }
             break;
-        case "REPORT":
-            if (GameBoard.IsRobotPlaced())
+        case CommandType.Report:
+            if (Simulator.IsRobotPlaced())
             {
-                var report = GameBoard.Report();
+                var report = Simulator.Report();
                 Console.WriteLine(report);
             }
             break;
