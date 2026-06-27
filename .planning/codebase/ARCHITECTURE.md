@@ -8,160 +8,130 @@
 ```text
 ┌──────────────────────────────────────────────────────────────┐
 │                    Console Entry Point                        │
-│                   `ToyRobot/Program.cs`                       │
-│          stdin loop → switch dispatch → stdout                │
-└────────────────────┬─────────────────────────────────────────┘
-                     │ calls
-          ┌──────────▼──────────┐
-          │    CommandParser     │
-          │ `CommandParser.cs`   │
-          │  (static, stateless) │
-          └──────────┬──────────┘
-                     │ parsed command/args
-          ┌──────────▼──────────┐
-          │      GameBoard       │
-          │   `GameBoard.cs`     │
-          │  (stateful facade)   │
-          └──────────┬──────────┘
-                     │ mutates
-          ┌──────────▼──────────┐
-          │        Robot         │
-          │     `Robot.cs`       │
-          │  (state container)   │
-          └─────────────────────┘
+│                  `ToyRobot/Program.cs`                        │
+│   stdin loop → CommandParser → switch dispatch               │
+└────────────┬─────────────────────────────────────────────────┘
+             │ calls
+             ▼
+┌──────────────────────────────────────────────────────────────┐
+│                      Simulator                                │
+│                  `ToyRobot/Simulator.cs`                      │
+│   Place / MoveForward / TurnLeft / TurnRight / Report        │
+└────────┬───────────────────────────┬─────────────────────────┘
+         │ mutates                   │ validates via
+         ▼                           ▼
+┌─────────────────┐        ┌──────────────────────┐
+│      Robot      │        │        Table          │
+│  `Robot.cs`     │        │    `Table.cs`         │
+│  xPos, yPos,    │        │  IsValidPosition(x,y) │
+│  direction      │        │  default 5x5          │
+└─────────────────┘        └──────────────────────┘
 ```
 
 ## Component Responsibilities
 
 | Component | Responsibility | File |
 |-----------|----------------|------|
-| Program | Entry point, REPL loop, command dispatch via switch | `ToyRobot/Program.cs` |
-| CommandParser | Splits raw input into command name + args; parses PLACE args | `ToyRobot/CommandParser.cs` |
-| GameBoard | Enforces board boundaries, owns all movement and turn logic | `ToyRobot/GameBoard.cs` |
-| Robot | Plain data container for position (xPos, yPos) and direction | `ToyRobot/Robot.cs` |
-| Direction | Enum: North=0, East=1, South=2, West=3, Unset=4 | `ToyRobot/Direction.cs` |
-| Commands | Empty stub class — no behaviour implemented | `ToyRobot/Commands.cs` |
+| `Program` | Entry point — REPL loop, reads stdin, dispatches to Simulator | `ToyRobot/Program.cs` |
+| `CommandParser` | Parses raw text into command name + args; parses PLACE args into typed values | `ToyRobot/CommandParser.cs` |
+| `Simulator` | Orchestrates all robot operations; enforces placement guard; owns Table instance | `ToyRobot/Simulator.cs` |
+| `Robot` | Plain data object holding current position (xPos, yPos) and facing direction | `ToyRobot/Robot.cs` |
+| `Table` | Boundary model — validates whether a coordinate pair is within the grid | `ToyRobot/Table.cs` |
+| `Direction` | Enum: North, East, South, West, Unset | `ToyRobot/Direction.cs` |
 
 ## Pattern Overview
 
-**Overall:** Procedural console REPL backed by a facade object.
+**Overall:** Layered console application with a Facade/Coordinator pattern.
 
 **Key Characteristics:**
-- No command objects — dispatch is a raw `switch` in `Program.cs`
-- `GameBoard` acts as a facade/service: it holds the `Robot` reference and enforces all rules
-- `CommandParser` is a pure static utility (no state, no DI)
-- `Robot` is a mutable data bag (public setters); it does not enforce any invariants
+- `Simulator` acts as a facade: callers never touch `Robot` or `Table` directly.
+- `CommandParser` is a pure-static parsing utility with no side effects.
+- `Program.cs` contains the REPL loop and a flat `switch` dispatch — commands are not first-class objects (no Command Pattern).
+- `Robot` is a mutable plain-data object (no behaviour); `Simulator` owns all mutation logic.
+- `Table` is a pure predicate (no state change), always consulted before mutating `Robot` position.
 
-## Layers
+## Domain Model
 
-**Presentation / I/O:**
-- Purpose: Read stdin, print stdout, dispatch commands
-- Location: `ToyRobot/Program.cs`
-- Contains: REPL while-loop, switch statement, Console.WriteLine calls
-- Depends on: CommandParser, GameBoard, Direction
-- Used by: nothing (top-level entry point)
+**Robot (`ToyRobot/Robot.cs`):**
+- Properties: `xPos` (int), `yPos` (int), `direction` (Direction)
+- Sentinel initial state: `xPos = -1`, `yPos = -1`, `direction = Direction.Unset`
+- Mutated exclusively by `Simulator`
 
-**Parsing:**
-- Purpose: Convert raw string input to typed values
-- Location: `ToyRobot/CommandParser.cs`
-- Contains: `ParseCommand` (splits verb from args), `TryParsePlaceArgs` (parses X,Y,DIRECTION)
-- Depends on: Direction enum
-- Used by: Program.cs
+**Table (`ToyRobot/Table.cs`):**
+- Represents a configurable grid (default 5x5, via `width`/`height` constructor params)
+- Valid positions: `0 <= x < Width`, `0 <= y < Height`
+- Instantiated inside `Simulator`; not exposed to callers
 
-**Domain / Logic:**
-- Purpose: All game rules — boundary checks, movement, rotation, placement guard
-- Location: `ToyRobot/GameBoard.cs`
-- Contains: `Place`, `MoveForward`, `TurnLeft`, `TurnRight`, `Report`, `IsRobotPlaced`
-- Depends on: Robot, Direction
-- Used by: Program.cs
+**Direction (`ToyRobot/Direction.cs`) — enum:**
+- Ordered: `North=0, East=1, South=2, West=3, Unset=4`
+- `TurnLeft`/`TurnRight` exploit integer ordering with wrap-around edge cases handled explicitly
 
-**State:**
-- Purpose: Hold current robot position and facing direction
-- Location: `ToyRobot/Robot.cs`
-- Contains: `xPos`, `yPos`, `direction` (all public get/set)
-- Depends on: Direction
-- Used by: GameBoard
+**Simulator (`ToyRobot/Simulator.cs`):**
+- Owns one `Robot` (injected via constructor) and one `Table` (created internally)
+- Tracks `RobotPlaced` boolean; the placement guard is enforced by `Program.cs` (not inside `Simulator` methods)
 
 ## Data Flow
 
 ### Primary Request Path
 
-1. User types a line into stdin — `Console.ReadLine()` in `Program.cs` (line 21)
-2. `CommandParser.ParseCommand` splits on the first space → `command` (uppercased) + `args` string (`CommandParser.cs` line 6)
-3. `Program.cs` switch matches `command` and calls the appropriate `GameBoard` method (lines 26–64)
-4. For PLACE: `CommandParser.TryParsePlaceArgs` further parses `args` into `int x, int y, Direction` (`CommandParser.cs` line 14)
-5. `GameBoard` validates bounds and/or executes movement, mutating `Robot` fields directly
-6. REPORT produces a formatted string returned to `Program.cs` and written to stdout
+1. `Console.ReadLine()` returns raw string (`Program.cs` line 21)
+2. `CommandParser.ParseCommand()` splits on first space → uppercased `command` + `args` (`CommandParser.cs` lines 6-11)
+3. `switch (command)` in `Program.cs` dispatches to the appropriate `Simulator` method
+4. **PLACE:** `CommandParser.TryParsePlaceArgs()` parses `"X,Y,DIRECTION"` → `Simulator.Place()` validates with `Table.IsValidPosition()` then mutates `Robot` (`Simulator.cs` lines 19-31)
+5. **MOVE:** `Simulator.MoveForward()` computes candidate position, validates via `Table.IsValidPosition()`, mutates `Robot` only if valid (`Simulator.cs` lines 51-78)
+6. **LEFT/RIGHT:** `Simulator.TurnLeft()` / `TurnRight()` adjust `Robot.direction` using enum arithmetic (`Simulator.cs` lines 33-48)
+7. **REPORT:** `Simulator.Report()` returns formatted string `"{x}, {y}, {direction}"` written to stdout (`Simulator.cs` line 83)
 
-### Boundary Guard Flow (MOVE)
+### Boundary Validation Path
 
-1. `GameBoard.MoveForward` computes candidate x/y from current direction
-2. If candidate is outside `[0, XBoundary]` or `[0, YBoundary]`, returns `false` without updating `Robot`
-3. Otherwise updates `Robot.xPos` / `Robot.yPos` and returns `true`
-
-**State Management:**
-- All mutable state lives in the single `Robot` instance held by `GameBoard`
-- `GameBoard.RobotPlaced` is a private bool flag; commands other than PLACE are silently ignored until it is `true`
-
-## Key Abstractions
-
-**Direction Enum:**
-- Purpose: Compass facing; also used as arithmetic for rotation (enum integer arithmetic ±1 with wrap-around at North/West boundary)
-- File: `ToyRobot/Direction.cs`
-- Pattern: Ordered enum (North=0 … West=3) so `TurnLeft`/`TurnRight` can decrement/increment with manual wrap
-
-**GameBoard:**
-- Purpose: Single point of truth for all game rules; shields `Robot` state from illegal mutations
-- File: `ToyRobot/GameBoard.cs`
-- Pattern: Facade — callers never touch `Robot` directly
+- Every position change (Place or MoveForward) calls `Table.IsValidPosition(x, y)` before committing
+- Invalid moves return `false` and leave `Robot` state unchanged
+- An invalid PLACE also leaves `RobotPlaced = false`
 
 ## Entry Points
 
 **Console REPL:**
-- Location: `ToyRobot/Program.cs` (top-level statements, no explicit `Main`)
-- Triggers: `dotnet run` from `ToyRobot/` directory
-- Responsibilities: Print welcome, loop forever reading stdin, dispatch to GameBoard
+- Location: `ToyRobot/Program.cs`
+- Triggers: Process start (`dotnet run` or compiled executable)
+- Responsibilities: Print usage banner, run infinite stdin loop, parse input, guard unplaced-robot commands, dispatch to `Simulator`
 
 ## Architectural Constraints
 
-- **Threading:** Single-threaded; no async, no background workers
-- **Global state:** `GameBoard` and its `Robot` are instantiated once as a local variable in `Program.cs` top-level statements (line 4); effectively a singleton for the process lifetime
-- **Circular imports:** None detected
-- **Placement guard:** All non-PLACE commands silently no-op if `IsRobotPlaced()` is false — no error is surfaced to the user
+- **Threading:** Single-threaded synchronous REPL; no concurrency.
+- **Global state:** `Simulator` instance is a local variable in top-level statements; `Robot` is injected and shared between `Simulator` and tests via direct property access.
+- **Placement guard:** The `IsRobotPlaced()` check is the caller's responsibility (`Program.cs`), not enforced inside `Simulator` methods.
+- **Commands.cs:** Does not exist in the repository; there is no Command Pattern or command-object abstraction.
+- **Direction wrap-around:** `TurnLeft` and `TurnRight` handle `North<->West` wrap explicitly; intermediate directions use `direction +/- 1` enum arithmetic, which is fragile if enum order changes.
 
 ## Anti-Patterns
 
-### Empty Commands class
+### Placement guard lives in the caller
 
-**What happens:** `ToyRobot/Commands.cs` exists but contains only an empty class body.
-**Why it's wrong:** Suggests an intended Command pattern (one class per command) that was never implemented; it is dead code and misleads future readers.
-**Do this instead:** Either delete the file or implement the Command pattern — one `ICommand` interface with `Execute()` and a concrete class per command, removing the switch from `Program.cs`.
+**What happens:** `Program.cs` checks `Simulator.IsRobotPlaced()` before calling `MoveForward`, `TurnLeft`, `TurnRight`, and `Report`. `Simulator` methods themselves do not guard against an unplaced robot.
+**Why it's wrong:** Any future caller that omits the check will silently operate on a robot at `(-1, -1, Unset)`.
+**Do this instead:** Move the guard into each `Simulator` method (throw `InvalidOperationException` or return a failure result when `RobotPlaced == false`).
 
-### Robot with public mutable setters
+### Robot properties have public setters
 
-**What happens:** `Robot.xPos`, `Robot.yPos`, and `Robot.direction` all have public `set` accessors (`Robot.cs` lines 9–11).
-**Why it's wrong:** Any code outside `GameBoard` can mutate robot state and bypass boundary validation.
-**Do this instead:** Make setters `internal` or `private set`; expose mutation only through `GameBoard` methods.
+**What happens:** `Robot.xPos`, `Robot.yPos`, and `Robot.direction` have public `set` accessors (`Robot.cs` lines 9-11).
+**Why it's wrong:** Any code can bypass `Simulator` and mutate robot state without boundary validation.
+**Do this instead:** Use `internal set` or `private set`; expose mutation only through `Simulator`.
 
-### ParseCommand does not validate empty input
+### Direction enum arithmetic
 
-**What happens:** If the user presses Enter with no input, `parts[0]` is an empty string; the switch falls through to the default "Invalid selection" branch with no special message.
-**Why it's wrong:** Silent partial failure; TODO comments acknowledge missing error handling (`CommandParser.cs` lines 5, 13).
-**Do this instead:** Return early or surface a typed parse result (e.g., `Result<ParsedCommand, string>`) so callers can distinguish parse failure from unknown command.
+**What happens:** `TurnLeft`/`TurnRight` rely on `Direction` enum integer values being contiguous in a specific order (North=0, East=1, South=2, West=3) (`Simulator.cs` lines 33-48).
+**Why it's wrong:** Adding or reordering enum members silently breaks rotation logic.
+**Do this instead:** Use an explicit lookup table or circular array of directions.
 
 ## Error Handling
 
-**Strategy:** Best-effort silent ignore. Commands issued before PLACE are dropped. Out-of-bounds MOVE returns `false` (ignored by caller). Invalid PLACE args print one error line.
+**Strategy:** Return-value signalling (`bool` returns from `Place` and `MoveForward`); invalid commands print an error message to stdout.
 
 **Patterns:**
-- `TryParse` pattern used in `CommandParser.TryParsePlaceArgs` — returns `bool`, out params set to defaults on failure
-- `GameBoard.Place` and `MoveForward` return `bool` but callers in `Program.cs` do not always check the return value
-
-## Cross-Cutting Concerns
-
-**Logging:** None — output is via `Console.WriteLine` only
-**Validation:** Boundary validation in `GameBoard`; argument parsing validation in `CommandParser`
-**Authentication:** Not applicable (local console app)
+- `Place` and `MoveForward` return `false` on failure; no exceptions thrown for domain errors.
+- `TryParsePlaceArgs` returns `false` on parse failure.
+- No structured error types; error messages are plain strings written to stdout.
+- TODO comments in `Program.cs` and `CommandParser.cs` mark known gaps in error messaging and the missing "must PLACE first" prompt.
 
 ---
 

@@ -8,6 +8,7 @@
 - C# 12.0 — all application and test code
   - Nullable reference types enabled (`<Nullable>enable</Nullable>`)
   - Implicit usings enabled (`<ImplicitUsings>enable</ImplicitUsings>`)
+  - LangVersion explicitly set to `12.0` in `ToyRobot.Tests/ToyRobot.Tests.csproj`
 
 ## Runtime
 
@@ -21,20 +22,22 @@
 ## Project Structure
 
 **Solution:**
-- `ToyRobot.slnx` — solution file
-- `ToyRobot/ToyRobot.csproj` — main console application
-- `ToyRobot.Tests/ToyRobot.Tests.csproj` — xUnit test project
+- `ToyRobot.slnx` — solution file (new XML `.slnx` format, Visual Studio 2022+)
+- `ToyRobot/ToyRobot.csproj` — main console application (`OutputType=Exe`)
+- `ToyRobot.Tests/ToyRobot.Tests.csproj` — test project; references main via `<ProjectReference>`
 
 ## Frameworks
 
 **Application:**
 - None beyond the .NET base class library; pure console I/O via `System.Console`
+- Entry point: `ToyRobot/Program.cs` (top-level statements)
 
 **Testing:**
 - xunit.v3 3.2.2 — test runner and assertion library
   - Uses `[Fact]` for single-case tests
   - Uses `[Theory]` + `[MemberData]` for parameterised tests
   - Uses `TheoryData<T...>` typed data sources
+  - Uses `Assert.Equal`, `Assert.True`, `Assert.False`
 
 ## Key NuGet Packages
 
@@ -48,7 +51,7 @@ No third-party packages in the main `ToyRobot` project — zero external depende
 
 - **dotnet CLI / MSBuild** — standard `dotnet build`, `dotnet run`, `dotnet test`
 - Output type: `Exe` (both projects declare `<OutputType>Exe</OutputType>`)
-- No custom build targets or props files detected
+- No custom build targets, `.props` files, or `Directory.Build.props` detected
 
 ## Run Commands
 
@@ -60,11 +63,10 @@ dotnet build                                         # Build solution
 
 ## Notable Design Choices
 
-- No dependency injection framework — objects are instantiated directly in `Program.cs`
+- No dependency injection framework — objects instantiated directly in `ToyRobot/Program.cs`
 - No logging library — uses `Console.WriteLine` throughout
 - No configuration library — no `appsettings.json`, no `IConfiguration`
-- Enum `Direction` uses integer arithmetic for rotation logic (`GameBoard.cs`)
-- `CommandParser` is a `static` class with no instance state
+- `CommandParser` is a `static` class with no instance state (`ToyRobot/CommandParser.cs`)
 
 ---
 

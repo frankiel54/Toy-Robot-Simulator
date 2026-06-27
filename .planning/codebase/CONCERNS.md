@@ -7,119 +7,171 @@
 ## TODO / FIXME Comments
 
 **`ToyRobot/CommandParser.cs` lines 5 and 13:**
-- Two `// TODO: Error handling` / `// TODO: Add error handling` comments are present on both public methods.
-- Neither `ParseCommand` nor `TryParsePlaceArgs` guard against a null or empty `input` string. Passing `null` directly (rather than `string.Empty`) to `ParseCommand` would throw a `NullReferenceException` on the `.Split` call.
-- `TryParsePlaceArgs` returns `false` on bad input but gives no indication of _why_ parsing failed (wrong number of parts, bad integer, unrecognised direction), which makes it impossible to surface a useful error message to the user.
+- `// TODO: Error handling` on `ParseCommand`
+- `// TODO: Add error handling` on `TryParsePlaceArgs`
+- Neither method has any input validation. `ParseCommand` does not crash on empty input (Split on an empty string is safe), but `TryParsePlaceArgs` returns `false` on bad input with no indication of what failed (wrong number of parts, bad integer, unrecognised direction). Callers cannot surface a useful error message to the user.
 
-**`ToyRobot/Program.cs` lines 16–19:**
-- Commented-out block for showing a first-run prompt to the user (`// TODO: Make some initial message that only shows once`) was never completed. No guidance is given when the robot has not yet been placed; commands other than PLACE are silently ignored.
-
-**`ToyRobot/Program.cs` line 24:**
-- `// TODO: Add some more error messages for when things don't go right` — silent failure on `MOVE`, `LEFT`, `RIGHT`, and `REPORT` when the robot is not placed. The user receives no feedback.
+**`ToyRobot/Program.cs` lines 16–19 and line 23:**
+- Lines 16–19: Commented-out block intended to prompt the user when the robot is not yet placed. The feature was planned but never completed. The comment reads `// TODO: Make some initial message that only show once`.
+- Line 23: `// TODO: Add some more error messages for when things dont go right`. MOVE, LEFT, RIGHT, and REPORT silently do nothing when the robot is unplaced; no feedback is given to the user.
 
 ---
 
-## Incomplete / Empty Implementation
+## Empty / Stub File
 
 **`ToyRobot/Commands.cs`:**
-- The `Commands` class (lines 8–9) is entirely empty. It appears to have been scaffolded as the destination for command logic that was never moved out of `Program.cs`. Its presence adds confusion without contributing behaviour.
-- Files: `ToyRobot/Commands.cs`
-- Fix approach: Either populate the class with command handler methods and refactor `Program.cs` to delegate to it, or delete the file.
+- The file path was provided as a source to analyse but the file does not exist on disk. The previous version of this document referenced a `Commands` class; that class appears to have been removed or never created. Its absence means all command dispatch logic lives inline in `Program.cs` with no dedicated home.
 
 ---
 
-## Boundary / Off-by-One Bugs
+## Encapsulation Concern — Public Setters on `Robot`
 
-**`ToyRobot/GameBoard.cs` — `Place` method, line 23:**
+**File:** `ToyRobot/Robot.cs` lines 9–11
+
 ```csharp
-if (x > XBoundary || y > YBoundary) {
+public int xPos { get; set; }
+public int yPos { get; set; }
+public Direction direction { get; set; }
 ```
-- The check does not guard against negative coordinates. `Place(-1, 2, Direction.North)` succeeds and puts the robot at an invalid position. The `Robot` constructor initialises `xPos` and `yPos` to `-1` specifically to signal "unplaced", so a placed robot at `(-1, -1)` is indistinguishable from the sentinel state.
-- Fix approach: Change condition to `x < 0 || y < 0 || x > XBoundary || y > YBoundary`.
 
-**`ToyRobot/GameBoard.cs` — board size semantics:**
-- `GameBoard` is constructed with `(4, 4, robot)` in `Program.cs` (line 4) and in every test. The boundary value `4` is used as an inclusive maximum (`x > XBoundary`), so the valid range is `0–4`, giving a 5×5 grid. The problem specification typically describes a 5×5 board (0–4), so this is technically correct, but the constructor parameter name `x` / `y` is misleading — it reads as "width/height" (i.e., 4) rather than "max index" (i.e., 4 = index of the 5th cell). A caller passing `5` expecting a 5×5 board would get a 6×6 board instead.
-- Fix approach: Rename parameters to `xMax`/`yMax` and document the semantics, or subtract 1 internally (`XBoundary = x - 1`).
+All three state fields have fully public setters. Any code holding a `Robot` reference can mutate position and direction without going through `Simulator`'s boundary checks. `SimulatorTests.cs` exploits this directly — tests assert state by reading `robot.direction`, `robot.xPos`, and `robot.yPos` (lines 18–21, 32–35, 48–51, 82–84), coupling tests to internal representation rather than observable behaviour.
+
+- Fix approach: Change setters to `internal set` or `private set`. Expose state externally only through `Simulator.Report()` or dedicated read-only properties on `Simulator`.
 
 ---
 
-## Design Concerns
+## Naming Convention — camelCase Properties on `Robot`
 
-**Arithmetic turn logic in `GameBoard.cs` lines 36–51:**
-- `TurnLeft` and `TurnRight` rely on the numeric order of the `Direction` enum values (`North=0, East=1, South=2, West=3, Unset=4`). Adding, reordering, or renaming enum members would silently break rotation. The `Unset` value occupying index 4 sits just past `West`, so `TurnRight` from `West` would overflow to `Unset` if the `West` special-case guard were accidentally removed.
-- Fix approach: Use an explicit lookup (a small array or dictionary) for direction cycling rather than integer arithmetic.
+**File:** `ToyRobot/Robot.cs` lines 9–11
 
-**`Direction.Unset` in the rotation methods:**
-- `TurnLeft` and `TurnRight` do not guard against being called when `Robot.direction == Direction.Unset`. `TurnLeft` would compute `Unset - 1 = West` (integer underflow of the enum), which is an incorrect but non-crashing silent mutation. `TurnRight` would set direction to `Unset + 1`, which maps to integer `5` — an undefined enum value.
-- Files: `ToyRobot/GameBoard.cs` lines 35–51
-- Fix approach: Guard both methods with `if (Robot.direction == Direction.Unset) return;` or enforce that turns are only reachable after placement (already partially done in `Program.cs` via `IsRobotPlaced`, but the `GameBoard` methods themselves have no internal guard).
+`xPos`, `yPos`, and `direction` use camelCase, violating C# PascalCase property naming conventions. Every other property in the codebase (`RobotPlaced`, `Width`, `Height`) follows the convention correctly. This inconsistency also exists in test assertions (`robot.direction`, `robot.xPos`, `robot.yPos`) throughout `SimulatorTests.cs`.
 
-**`Robot` properties are fully public setters (`ToyRobot/Robot.cs` lines 9–11):**
-- `xPos`, `yPos`, and `direction` are all `public set`. Any caller can mutate robot state without going through `GameBoard`'s boundary validation. This breaks encapsulation and makes it trivial to corrupt state.
-- Fix approach: Change setters to `internal set` or `private set` and expose mutation only via `GameBoard` methods.
+---
 
-**`GameBoard` holds a `Robot` reference but exposes no `Robot` property:**
-- `GameBoard` controls the robot through a private field, which is correct. However, tests in `GameBoardTests.cs` reach into the `Robot` instance directly (e.g., `Assert.Equal(Direction.North, robot.direction)`) rather than going through `GameBoard.Report()`. This couples tests to internal representation.
-- Files: `ToyRobot.Tests/GameBoardTests.cs` lines 18–21, 48–51, etc.
+## `Direction.Unset` — Silent Corruption in Rotation Methods
 
-**`Program.cs` is a top-level statement file with no separation of concerns:**
-- All input reading, parsing, dispatch, and output live in `Program.cs`. This makes unit testing the CLI loop impossible without mocking `Console`, and makes it difficult to add features (e.g., batch/file input, a test harness) without restructuring the file.
-- Fix approach: Extract a `GameLoop` or `Application` class that accepts an `ICommandParser`, `IGameBoard`, and `TextReader`/`TextWriter`, allowing injection in tests.
+**File:** `ToyRobot/Simulator.cs` lines 33–49
+
+`TurnLeft` and `TurnRight` do not guard against `Robot.direction == Direction.Unset`:
+
+- `TurnLeft` computes `Unset - 1`. `Unset` has enum value `4`, so this yields `3 = West` — silently setting a direction without a valid placement.
+- `TurnRight` computes `Unset + 1`, yielding integer `5` — an undefined enum value, which C# allows without throwing.
+
+`Program.cs` guards `LEFT` and `RIGHT` calls with `IsRobotPlaced()` (lines 42–48), so the bug does not surface through normal CLI usage. However, `Simulator` itself has no internal guard, meaning any direct consumer of `Simulator` (future callers, tests) can trigger this without warning.
+
+- Fix approach: Add `if (!RobotPlaced) return;` (or `if (Robot.direction == Direction.Unset) return;`) at the top of both methods.
+
+---
+
+## `Direction` Enum — Arithmetic Coupling in Turn Logic
+
+**File:** `ToyRobot/Simulator.cs` lines 33–49
+
+Turn logic uses integer arithmetic on enum values (`Robot.direction - 1`, `Robot.direction + 1`). This works only because the enum is declared in the exact order `North=0, East=1, South=2, West=3`. Reordering, renaming, or inserting values in `Direction.cs` would silently break rotation without a compile error.
+
+- Fix approach: Use an explicit lookup array or dictionary: `Direction[] clockwise = { North, East, South, West };` and index by position.
+
+---
+
+## `Simulator.Report()` — No Unplaced Guard
+
+**File:** `ToyRobot/Simulator.cs` lines 82–85
+
+`Report()` returns raw robot state regardless of `RobotPlaced`. Calling it before a valid `PLACE` produces the string `"-1, -1, Unset"`. `Program.cs` guards this correctly (line 54), but the method itself makes no contract guarantee. Any future caller must know to check `IsRobotPlaced()` first or it will output nonsense.
+
+- Fix approach: Return `null` or throw `InvalidOperationException` when `!RobotPlaced`, and document the contract.
+
+---
+
+## `TryParsePlaceArgs` Accepts Out-of-Bounds Coordinates
+
+**File:** `ToyRobot/CommandParser.cs` lines 14–22
+
+The parser successfully parses coordinates like `99,12,EAST` (used as a test case in `CommandParserTests.cs` line 43). Range validation is deferred entirely to `Simulator.Place()`. This split is architecturally defensible, but the test asserting `99,12,EAST` parses successfully could mislead a reader into thinking those are valid board positions.
+
+---
+
+## `Program.cs` — No Exit Command
+
+**File:** `ToyRobot/Program.cs` line 14
+
+The main loop is `while (true)` with no break condition. There is no `EXIT`, `QUIT`, or `EOF` handling. The only way to terminate the program is Ctrl+C. An empty input line (user presses Enter) falls to the `default` case and prints "Invalid selection."
+
+---
+
+## `Program.cs` — No Separation of Concerns
+
+**File:** `ToyRobot/Program.cs`
+
+All input reading, parsing, dispatch, and output live in a top-level statement file. The command dispatch switch (lines 24–63) cannot be unit tested without mocking `Console`. Adding batch/file input, a scripted test harness, or a second frontend (e.g., GUI) requires restructuring the entire file.
+
+- Fix approach: Extract a `CommandDispatcher` or `Application` class accepting a `TextReader`, `TextWriter`, and `Simulator`, allowing injection in tests.
+
+---
+
+## `Robot` Passed Into `Simulator` By Reference — Inverted Ownership
+
+**File:** `ToyRobot/Simulator.cs` line 13; `ToyRobot/Program.cs` line 12
+
+`Robot` is constructed externally and passed into `Simulator`, which then mutates it. The external caller retains a live reference and can observe or corrupt `Robot` state independently of `Simulator`. The natural ownership is the reverse: `Simulator` should own `Robot` and expose state through its own API.
+
+- Fix approach: Construct `Robot` internally in `Simulator` and remove the constructor parameter.
 
 ---
 
 ## Test Coverage Gaps
 
-**`MOVE` called before `PLACE` is never tested:**
-- `GameBoard.MoveForward()` can be called with `RobotPlaced == false`, at which point `Robot.xPos` and `Robot.yPos` are `-1`. The move boundary check (`x < 0`) would catch this and return `false`, but the behaviour is untested.
-- Files: `ToyRobot.Tests/GameBoardTests.cs`
+**`Report()` when robot is unplaced:**
+- No test covers `Report()` output before `Place()` is called. The current output is `"-1, -1, Unset"` but this is unspecified, unverified, and arguably wrong.
+- Files: `ToyRobot.Tests/SimulatorTests.cs`
 - Priority: Medium
 
-**`TurnLeft` / `TurnRight` called before `PLACE` are never tested:**
-- As noted above, calling these when `direction == Direction.Unset` can produce silent corruption.
+**`TurnLeft` / `TurnRight` when robot is unplaced:**
+- No test guards or documents the behaviour of rotation before placement. Silent corruption is possible (see Direction.Unset concern above).
 - Priority: High
 
-**`Place` with negative coordinates is not tested:**
-- The off-by-one gap in the boundary check (missing `x < 0 || y < 0`) is not covered by any test.
-- Files: `ToyRobot.Tests/GameBoardTests.cs`
-- Priority: High
+**`MoveForward` when robot is unplaced:**
+- `Robot.xPos` and `Robot.yPos` are `-1`, so `Table.IsValidPosition(-1, ...)` returns `false` and the move is silently blocked — but this is incidental behaviour, not a tested contract.
+- Priority: Medium
 
-**`CommandParser` failure cases are not tested:**
-- `TryParsePlaceArgs` is only tested with valid inputs. No test covers malformed strings (missing comma, non-integer, unknown direction, empty string).
+**Multiple `PLACE` calls:**
+- No test verifies that a second valid `Place()` overwrites the first correctly, or that an invalid second `Place()` leaves the robot at its previously valid position.
+- Priority: Medium
+
+**`IsRobotPlaced()` not asserted after a failed `Place`:**
+- `Place_Should_Return_False_And_Not_Set_Robot` checks that robot state is unchanged but does not assert `gameBoard.IsRobotPlaced() == false`.
+- Files: `ToyRobot.Tests/SimulatorTests.cs` lines 25–36
+- Priority: Low
+
+**`TryParsePlaceArgs` failure path not tested:**
+- `CommandParserTests.cs` tests only valid inputs. No test covers malformed args (wrong number of parts, non-integer, invalid direction, empty string).
 - Files: `ToyRobot.Tests/CommandParserTests.cs`
 - Priority: Medium
 
-**`ParseCommand` with lower-case input is not tested:**
-- The method calls `.ToUpper()` on the command token. Tests only supply upper-case input; the normalisation is untested.
+**`ParseCommand` test uses space-separated args, not comma-separated:**
+- `CommandParserTests.cs` line 23 uses `"PLACE 1 1 NORTH"` as raw input (space-separated after PLACE), but the actual expected format is `"PLACE 1,1,NORTH"` (comma-separated). The test is exercising the split on the first space correctly, but the args token it produces (`"1 1 NORTH"`) would fail `TryParsePlaceArgs`. This is not a test failure but is confusing and misleading.
+- Files: `ToyRobot.Tests/CommandParserTests.cs` line 23
 - Priority: Low
 
-**`PLACE` called multiple times is not tested:**
-- Re-placing the robot at a new valid position should update state. Re-placing at an out-of-bounds position should leave state unchanged. Neither scenario has a test.
-- Priority: Medium
-
-**`Report` called before `PLACE` is not tested:**
-- `Program.cs` guards this with `IsRobotPlaced()`, but `GameBoard.Report()` itself would return `"-1, -1, Unset"` if called directly without placement. No test documents this expectation.
+**No integration / end-to-end tests:**
+- No test exercises the full pipeline: raw string input → `ParseCommand` → `TryParsePlaceArgs` → `Simulator` → `Report()` output. All tests are isolated unit tests.
 - Priority: Low
-
-**Integration / end-to-end tests are absent:**
-- There are no tests that exercise the full command parsing → game board → output pipeline. All tests operate at the unit level on individual methods.
-- Priority: Low (acceptable for scope, but worth noting for future extension)
 
 ---
 
 ## Open Domain Questions
 
 **What should happen when `PLACE` is called multiple times?**
-- The current implementation simply overwrites the robot's position. This is likely correct per spec, but it is undocumented and untested.
+- Current implementation overwrites the robot's position. This is likely correct per spec, but it is undocumented and untested. The prior placement is fully discarded, even if the new placement is invalid (which is guarded — invalid re-placement leaves old position intact).
 
-**Should `REPORT` output go to `Console.Out` or be returned as a value?**
-- `GameBoard.Report()` returns a `string`, and `Program.cs` calls `Console.WriteLine(report)`. This is clean, but if multiple output streams were needed (e.g., test capture), there is no abstraction.
+**What should `REPORT` output when the robot is unplaced?**
+- The spec typically requires all commands before the first valid `PLACE` to be ignored. `Simulator.Report()` does not enforce this. `Program.cs` does, but only for the CLI path.
 
 **What happens on an empty/whitespace-only input line?**
-- `ParseCommand` splits on space and takes `parts[0].ToUpper()`. An empty string produces `command = ""`, which hits the `default` case in the switch and prints "Invalid selection." — mildly confusing for the user hitting Enter on an empty line.
+- `ParseCommand` splits on space and uppercases `parts[0]`. An empty string produces `command = ""`, which hits `default` in the switch and prints "Invalid selection." This is mildly confusing for a user pressing Enter on an empty line.
 
-**Is the board 0-indexed or 1-indexed in the problem domain?**
-- The code uses 0-based indexing consistently, but the user-facing help text in `Program.cs` (`PLACE X,Y,Z`) does not clarify the valid range. A user may not know the board goes from `0,0` to `4,4`.
+**Is the board 0-indexed or 1-indexed from the user's perspective?**
+- Code uses 0-based indexing. The help text in `Program.cs` shows `PLACE X,Y,Z` but does not clarify valid range. A user may not know the board runs from `0,0` to `4,4`.
 
 ---
 

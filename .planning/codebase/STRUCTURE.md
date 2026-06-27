@@ -5,88 +5,83 @@
 ## Directory Layout
 
 ```
-ToyRobot/                          # Solution root
-├── ToyRobot/                      # Main console application project
-│   ├── ToyRobot.csproj            # SDK-style project file (net10.0, OutputType=Exe)
-│   ├── Program.cs                 # Entry point — top-level statements, REPL loop
-│   ├── GameBoard.cs               # Core domain logic and boundary enforcement
-│   ├── Robot.cs                   # Robot state data container
-│   ├── Direction.cs               # Compass direction enum
-│   ├── CommandParser.cs           # Static input parsing utilities
-│   └── Commands.cs                # Empty stub (dead code)
-└── ToyRobot.Tests/                # xUnit test project
-    ├── ToyRobot.Tests.csproj      # References ToyRobot project; xunit.v3 3.2.2
-    ├── GameBoardTests.cs          # Tests for GameBoard (placement, movement, turns, report)
-    └── CommandParserTests.cs      # Tests for CommandParser (parse and TryParsePlaceArgs)
+ToyRobot/                         # Solution root
+├── ToyRobot/                     # Main console application project
+│   ├── ToyRobot.csproj           # Project file (net10.0, OutputType=Exe)
+│   ├── Program.cs                # Entry point — REPL loop and command dispatch
+│   ├── Simulator.cs              # Facade/coordinator for all robot operations
+│   ├── Robot.cs                  # Plain data object — position and direction state
+│   ├── Table.cs                  # Grid boundary model — validates positions
+│   ├── Direction.cs              # Enum: North, East, South, West, Unset
+│   └── CommandParser.cs          # Static text parsing utilities
+└── ToyRobot.Tests/               # xUnit test project
+    ├── ToyRobot.Tests.csproj     # Project file (net10.0, references ToyRobot)
+    ├── SimulatorTests.cs         # Tests for Simulator (Place, Move, Turn, Report)
+    ├── CommandParserTests.cs     # Tests for CommandParser parsing methods
+    └── TableTests.cs             # Tests for Table boundary validation
 ```
 
 ## Key File Responsibilities
 
 | File | Responsibility |
-|------|----------------|
-| `ToyRobot/Program.cs` | Top-level REPL: reads stdin, dispatches switch on command name, writes stdout |
-| `ToyRobot/GameBoard.cs` | Enforces board bounds; owns Place, MoveForward, TurnLeft, TurnRight, Report |
-| `ToyRobot/Robot.cs` | Plain data class holding xPos, yPos, direction; initialized to (-1, -1, Unset) |
-| `ToyRobot/Direction.cs` | Enum with values North(0), East(1), South(2), West(3), Unset(4) |
-| `ToyRobot/CommandParser.cs` | Static methods: ParseCommand splits verb/args; TryParsePlaceArgs parses X,Y,DIR |
-| `ToyRobot/Commands.cs` | Empty class — no behaviour; dead code left from an unimplemented design |
-| `ToyRobot.Tests/GameBoardTests.cs` | xUnit Facts and Theories covering Place, MoveForward, TurnLeft, TurnRight, Report |
-| `ToyRobot.Tests/CommandParserTests.cs` | xUnit Theories covering ParseCommand and TryParsePlaceArgs |
+|------|---------------|
+| `ToyRobot/Program.cs` | Top-level statements; stdin REPL loop; switch dispatch to Simulator |
+| `ToyRobot/Simulator.cs` | Place, MoveForward, TurnLeft, TurnRight, Report — all domain logic; owns Table |
+| `ToyRobot/Robot.cs` | Data container for xPos, yPos, direction; no behaviour |
+| `ToyRobot/Table.cs` | Holds grid dimensions; exposes `IsValidPosition(x, y)` predicate |
+| `ToyRobot/Direction.cs` | Enum with compass directions plus Unset sentinel |
+| `ToyRobot/CommandParser.cs` | `ParseCommand` splits raw input; `TryParsePlaceArgs` parses PLACE argument string |
+| `ToyRobot.Tests/SimulatorTests.cs` | Fact and Theory tests for all Simulator operations |
+| `ToyRobot.Tests/CommandParserTests.cs` | Theory tests for command tokenisation and PLACE arg parsing |
+| `ToyRobot.Tests/TableTests.cs` | Theory tests for boundary edge cases and custom dimensions |
 
 ## Namespace Organization
 
-| Namespace | Project | Files |
-|-----------|---------|-------|
-| `ToyRobot` | `ToyRobot/` | All source files (Program.cs uses implicit/top-level; others declare namespace explicitly) |
-| `ToyRobot.Tests` | `ToyRobot.Tests/` | Both test files; set via `<RootNamespace>` in the csproj |
+**`ToyRobot`** — all production types:
+- `ToyRobot/Robot.cs`
+- `ToyRobot/Direction.cs`
+- `ToyRobot/Table.cs`
+- `ToyRobot/Simulator.cs`
+- `ToyRobot/CommandParser.cs`
+- `ToyRobot/Program.cs` (top-level statements, implicit namespace)
 
-## How Tests Are Structured Relative to Source
+**`ToyRobot.Tests`** — all test types:
+- `ToyRobot.Tests/SimulatorTests.cs`
+- `ToyRobot.Tests/CommandParserTests.cs`
+- `ToyRobot.Tests/TableTests.cs`
 
-- Tests live in a **separate project** (`ToyRobot.Tests/`) that references the main project via `<ProjectReference>`.
-- There is no `src/` or `tests/` folder grouping — both projects sit at the solution root level.
-- Test class names mirror the type under test: `GameBoardTests` tests `GameBoard`; `CommandParserTests` tests `CommandParser`.
-- Test methods use xUnit.v3 `[Fact]` for single-case tests and `[Theory]` + `[MemberData]` for parameterised cases. Data providers are `static TheoryData<...>` methods in the same class.
-- Tests instantiate dependencies directly (`new Robot()`, `new GameBoard(4,4,robot)`) — no mocking framework is used.
+## Test Structure Relative to Source
+
+Tests live in a separate project (`ToyRobot.Tests/`) that references `ToyRobot.csproj` via a `<ProjectReference>`. There are no co-located test files inside the main project. Test classes mirror source classes by name (e.g., `SimulatorTests` tests `Simulator`, `TableTests` tests `Table`).
 
 ## Naming Conventions
 
-**Files:**
-- PascalCase matching the primary type they contain: `GameBoard.cs`, `CommandParser.cs`
-- Test files: `<TypeName>Tests.cs`
-
-**Types:**
-- PascalCase classes and enums throughout
-
-**Members:**
-- Public properties: PascalCase (`XBoundary`, `RobotPlaced`)
-- Exception: `Robot` uses camelCase for its public properties (`xPos`, `yPos`, `direction`) — inconsistent with the rest of the codebase
+**Files:** PascalCase, one class/enum per file matching the type name (e.g., `Robot.cs` contains `class Robot`).
+**Test files:** `{ClassName}Tests.cs` pattern.
+**Namespaces:** Match project name (`ToyRobot`, `ToyRobot.Tests`).
 
 ## Where to Add New Code
 
-**New command (e.g., RESET):**
-- Parsing: no change needed in `CommandParser` unless the command takes arguments
-- Dispatch: add a `case "RESET":` branch in `Program.cs` switch
-- Logic: add a method to `GameBoard.cs`
-- Tests: add facts/theories to `ToyRobot.Tests/GameBoardTests.cs`
+**New domain behaviour (e.g., new robot command):**
+- Add method to `ToyRobot/Simulator.cs`
+- Add dispatch case in `ToyRobot/Program.cs`
+- Add tests in `ToyRobot.Tests/SimulatorTests.cs`
 
-**New domain entity (e.g., Obstacle):**
-- Add `ToyRobot/Obstacle.cs` in the main project under namespace `ToyRobot`
-- Integrate into `GameBoard.cs` for collision detection
-- Test in a new `ToyRobot.Tests/ObstacleTests.cs` or extend `GameBoardTests.cs`
+**New parsing logic:**
+- Add static method to `ToyRobot/CommandParser.cs`
+- Add tests in `ToyRobot.Tests/CommandParserTests.cs`
 
-**New parsing utility:**
-- Add static method to `ToyRobot/CommandParser.cs`, or create a dedicated `ToyRobot/ArgsParser.cs` if scope grows
+**New domain type or value object:**
+- Create `ToyRobot/{TypeName}.cs` in the `ToyRobot` namespace
 
-**Replacing the switch with a Command pattern:**
-- Implement `ICommand` interface and concrete command classes in `ToyRobot/Commands/` subfolder
-- Repurpose or delete the empty `ToyRobot/Commands.cs` stub
+**New test class:**
+- Create `ToyRobot.Tests/{ClassName}Tests.cs` in the `ToyRobot.Tests` namespace
 
-## Special Directories
+## Special Notes
 
-**`.planning/`:**
-- Purpose: GSD planning and codebase analysis documents
-- Generated: Partially (codebase maps generated by tooling)
-- Committed: Yes (planning artifacts are version-controlled)
+- `Commands.cs` does not exist — there is no command-object abstraction despite the filename appearing in planning documents.
+- The solution file (`.sln`) is not present at the root; projects are referenced directly.
+- No `src/` subdirectory — project folders sit directly at the repo root.
 
 ---
 

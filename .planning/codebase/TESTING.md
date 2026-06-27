@@ -5,80 +5,74 @@
 ## Test Framework
 
 **Runner:**
-- xUnit (referenced as `Xunit` and `Xunit.v3` in `ToyRobot.Tests/GameBoardTests.cs`)
-- Config: no `xunit.runner.json` detected; default settings assumed
+- xUnit v3 (`xunit.v3` version 3.2.2)
+- The test project is compiled as a self-hosted executable (`<OutputType>Exe</OutputType>`), which is required by xUnit v3's runner model.
+- Config: `ToyRobot.Tests/ToyRobot.Tests.csproj`
+- Target framework: `net10.0`, language version `12.0`
 
 **Assertion Library:**
-- xUnit built-in: `Assert.Equal`, `Assert.True`, `Assert.False`
+- xUnit built-in assertions (`Assert.*`)
 
 **Run Commands:**
 ```bash
-dotnet test          # Run all tests
-dotnet test --watch  # Watch mode (if dotnet-watch installed)
-dotnet test --collect:"XPlat Code Coverage"  # Coverage
+# Run all tests (NOT dotnet test — the project is OutputType=Exe)
+dotnet run --project ToyRobot.Tests
+
+# There is no watch mode or coverage command configured
 ```
+
+> **Important:** `dotnet test` does NOT work for this project. Tests must be run with `dotnet run --project ToyRobot.Tests`.
 
 ## Test File Organization
 
-**Location:**
-- Separate test project: `ToyRobot.Tests/`
-- Test files sit at the project root, not mirroring source sub-folders
+**Location:** Separate project `ToyRobot.Tests/`, mirroring the main `ToyRobot/` project via a `<ProjectReference>`.
 
-**Naming:**
-- Test files: `{SourceClass}Tests.cs`
-  - `ToyRobot.Tests/GameBoardTests.cs` tests `GameBoard`
-  - `ToyRobot.Tests/CommandParserTests.cs` tests `CommandParser`
+**Naming:** Test file names match the class under test with a `Tests` suffix:
+- `ToyRobot.Tests/SimulatorTests.cs` tests `ToyRobot/Simulator.cs`
+- `ToyRobot.Tests/CommandParserTests.cs` tests `ToyRobot/CommandParser.cs`
+- `ToyRobot.Tests/TableTests.cs` tests `ToyRobot/Table.cs`
 
-**Namespace:**
-- `namespace ToyRobot.Tests` — matches test project name
-
-## Test Structure
-
-**Suite Organization:**
-```csharp
-public class GameBoardTests
-{
-    [Fact]
-    public void MethodName_Should_ExpectedBehavior() { ... }
-
-    [Theory]
-    [MemberData(nameof(DataMethod))]
-    public void MethodName_Should_ExpectedBehavior(Type param, ...) { ... }
-
-    public static TheoryData<T1, T2> DataMethod() => new() { { val1, val2 }, ... };
-}
-```
-
-**Pattern:**
-- Arrange / Act / Assert (AAA) — consistently followed in all tests
-- Each test creates its own `Robot` and `GameBoard` instances (no shared setup; no `IClassFixture` or constructor injection)
-- No `[SetUp]` equivalent — setup is inline per test
+**Namespace:** `ToyRobot.Tests`
 
 ## Test Naming Convention
 
-Format: `SubjectOrAction_Should_Outcome`
+Test method names use `PascalCase` with underscores separating logical segments:
+
+```
+{MethodUnderTest}_{Condition}_{ExpectedOutcome}
+```
 
 Examples:
 - `Place_Should_Successfully_Execute`
 - `Place_Should_Return_False_And_Not_Set_Robot`
-- `Move_Should_Move_Position_Forward`
 - `Move_Should_Not_Move_If_Going_Out_Of_Bounds`
-- `Turn_Left_Should_Turn_Left`
-- `ParseCommand_Should_Parse`
+- `IsValidPosition_Should_ReturnTrue_ForPositionsInsideBounds`
 - `TryParsePlaceArgs_Should_Parse`
 
-**Inconsistency:** `Turn_Left_Should_Turn_Right` (line 96 of `GameBoardTests.cs`) is a copy-paste naming error — the method name says "Turn_Left" but it tests `TurnRight`.
+One test has a copy-paste naming error: `Turn_Left_Should_Turn_Right` (`SimulatorTests.cs` line 96) — the test body exercises `TurnRight` but the method name says "Turn Left".
 
-## Mocking
+## Test Structure
 
-**Framework:** None — no mocking library detected (no Moq, NSubstitute, etc.)
+**Pattern:** Arrange / Act / Assert (AAA), consistently applied.
 
-**Approach:** Direct instantiation of all collaborators. `GameBoard` is tested by passing a real `Robot` instance and asserting against that `Robot`'s public properties after the fact.
+```csharp
+// Arrange
+var robot = new Robot();
+var gameBoard = new Simulator(robot);
 
-## Fixtures and Factories
+// Act
+var result = gameBoard.Place(1, 2, Direction.North);
 
-**Test Data:**
-- `TheoryData<T...>` static methods used for parameterised cases:
+// Assert
+Assert.Equal(Direction.North, robot.direction);
+Assert.Equal(1, robot.xPos);
+Assert.Equal(2, robot.yPos);
+Assert.True(result);
+```
+
+**`[Fact]`** is used for single-scenario tests.
+
+**`[Theory]` with `[MemberData]`** is used for parameterised tests. Data is provided via `static` methods returning `TheoryData<T...>` with the `new()` collection initialiser syntax:
 
 ```csharp
 public static TheoryData<Direction, Direction> TurnLeftData() => new()
@@ -90,49 +84,58 @@ public static TheoryData<Direction, Direction> TurnLeftData() => new()
 };
 ```
 
-- Data providers are defined as `public static` methods on the same test class, referenced via `[MemberData(nameof(...))]`
+## Test Coverage by Class
 
-**Location:** Inline in each test class; no shared fixture file
+**`Simulator` (`SimulatorTests.cs`):**
+- `Place` — valid position, out-of-bounds position
+- `MoveForward` — forward move, boundary prevention
+- `TurnLeft` — all four cardinal directions (via Theory)
+- `TurnRight` — all four cardinal directions (via Theory)
+- `Report` — output format for multiple positions/directions (via Theory)
+- `IsRobotPlaced` — not directly tested in isolation
 
-## Coverage
+**`CommandParser` (`CommandParserTests.cs`):**
+- `ParseCommand` — basic splitting, command uppercasing, no-arg commands
+- `TryParsePlaceArgs` — valid comma-separated inputs
 
-**Requirements:** None enforced (no coverage threshold in project files)
+**`Table` (`TableTests.cs`):**
+- `IsValidPosition` — all four corners and centre (valid), negative and out-of-range values (invalid), custom dimensions
 
-**Assessed coverage by class:**
-
-| Class | Coverage | Notes |
-|-------|----------|-------|
-| `GameBoard` | Good | `Place`, `MoveForward`, `TurnLeft`, `TurnRight`, `Report` all tested; `IsRobotPlaced` not directly tested but exercised indirectly via `Program.cs` |
-| `CommandParser` | Partial | `ParseCommand` and `TryParsePlaceArgs` happy-path tested; no tests for malformed input (wrong arg count, non-integer coords, invalid direction string) |
-| `Robot` | None | No dedicated tests; only verified as a data carrier through `GameBoard` tests |
-| `Direction` | None | Enum values exercised indirectly; no edge-case tests |
-| `Commands` | None | Empty stub — nothing to test |
-| `Program.cs` | None | Entry-point / I/O loop; not unit-testable in current form |
-
-## Test Types
-
-**Unit Tests:**
-- All tests are unit tests scoped to a single class
-- No integration tests, no end-to-end tests
-
-**E2E Tests:**
-- Not present. The main game loop in `Program.cs` reads from `Console` directly, making it untestable without refactoring to accept an injectable `TextReader`/`TextWriter`
+**`Robot` (`Robot.cs`):** No tests. The constructor initialisation values (`xPos = -1`, `yPos = -1`, `Direction.Unset`) are implicitly verified by `Simulator` tests that check state before placement.
 
 ## Coverage Gaps
 
-**`CommandParser` invalid input:**
-- `TryParsePlaceArgs` with fewer than 3 comma-separated parts
-- `TryParsePlaceArgs` with non-integer coordinate values
-- `TryParsePlaceArgs` with an unrecognised direction string
-- `ParseCommand` with an empty string input
+**`CommandParser` — unhappy paths not tested:**
+- `TryParsePlaceArgs` with invalid input (non-numeric coordinates, wrong number of parts, unknown direction) — no tests exist. The method returns `false` but this is never verified.
+- `ParseCommand` with empty string or whitespace-only input.
+- Case-insensitive command parsing (lowercase input) — the method uppercases `command` but this is untested.
 
-**`GameBoard` boundary edge cases:**
-- `Place` with negative coordinates (currently not guarded — `x < 0` or `y < 0` are not checked in `Place`, only in `MoveForward`)
-- `MoveForward` when robot has not been placed (`direction == Direction.Unset` causes silent arithmetic on an out-of-range enum value)
-- `TurnLeft` / `TurnRight` when direction is `Unset`
+**`Simulator` — `IsRobotPlaced`:**
+- Not tested in isolation; its behavior is exercised indirectly via `Program.cs` (untested) logic.
 
-**`Robot` initialisation:**
-- No test asserts the sentinel defaults (`xPos = -1`, `yPos = -1`, `direction = Direction.Unset`)
+**`Program.cs`:**
+- Not tested at all. The main application loop, command dispatch, and user-facing error messages have no test coverage.
+
+**Integration / end-to-end:**
+- No integration or end-to-end tests exist. The full command-loop flow (parsing a raw string through to robot state change) is not covered as a unit.
+
+## Mocking
+
+No mocking framework is used. Tests instantiate real `Robot`, `Table`, and `Simulator` objects directly. There is no interface abstraction layer in the production code, so mocking is not possible without refactoring.
+
+## Fixtures and Factories
+
+No shared fixtures or factory helpers. Each test method constructs its own objects inline:
+```csharp
+var robot = new Robot();
+var gameBoard = new Simulator(robot);
+```
+
+The variable name `gameBoard` is used consistently across `SimulatorTests.cs` to refer to the `Simulator` instance.
+
+## Coverage Tooling
+
+No code coverage tooling is configured in the project. There is no `coverlet` package reference and no coverage scripts.
 
 ---
 

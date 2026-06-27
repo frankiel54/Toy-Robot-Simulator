@@ -5,86 +5,100 @@
 ## Naming Patterns
 
 **Classes:**
-- PascalCase throughout: `Robot`, `GameBoard`, `CommandParser`, `Commands`
-- Class names are clear nouns describing their responsibility
+- PascalCase: `Robot`, `Table`, `Simulator`, `CommandParser`
 
 **Methods:**
-- PascalCase: `Place`, `TurnLeft`, `TurnRight`, `MoveForward`, `Report`, `IsRobotPlaced`, `ParseCommand`, `TryParsePlaceArgs`
-- Boolean-returning methods use `Is` prefix (`IsRobotPlaced`) or `Try` prefix (`TryParsePlaceArgs`) following .NET conventions
+- PascalCase: `Place`, `MoveForward`, `TurnLeft`, `TurnRight`, `Report`, `IsRobotPlaced`, `IsValidPosition`, `ParseCommand`, `TryParsePlaceArgs`
+- `Try`-prefix pattern used for methods that return a bool and populate `out` parameters: `TryParsePlaceArgs`
 
-**Properties:**
-- PascalCase for private properties on `GameBoard`: `XBoundary`, `YBoundary`, `Robot`, `RobotPlaced`
-- **Inconsistency:** Public properties on `Robot` use camelCase (`xPos`, `yPos`, `direction`) — violates .NET property naming conventions; they should be PascalCase (`XPos`, `YPos`, `Direction`)
+**Properties (on `Robot`):**
+- camelCase — inconsistent with C# conventions: `xPos`, `yPos`, `direction`
+- Private class-level fields on `Table` use PascalCase: `Width`, `Height` (non-standard; convention is `_camelCase`)
+- Private auto-properties on `Simulator` use PascalCase correctly: `Robot`, `RobotPlaced`, `Table`
 
-**Fields / Local Variables:**
-- camelCase: `x`, `y`, `parts`, `command`, `commandArgs`, `report`
+**Enum:**
+- Type name PascalCase: `Direction` (`ToyRobot/Direction.cs`)
+- Members PascalCase: `North`, `East`, `South`, `West`, `Unset`
+- `Unset` is a sentinel/default value representing an unplaced robot
 
-**Enums:**
-- Enum type: PascalCase (`Direction`)
-- Enum members: PascalCase (`North`, `East`, `South`, `West`, `Unset`)
-- `Unset` sentinel value used to represent "not yet placed" state
+**Local Variables:**
+- camelCase: `x`, `y`, `parts`, `command`, `commandArgs`, `direction`
 
-**Parameters:**
-- camelCase: `x`, `y`, `direction`, `input`, `args`, `robot`
+**Naming inconsistencies to be aware of:**
+- `Robot` public properties (`xPos`, `yPos`, `direction`) use camelCase instead of the C# standard PascalCase. This is the primary naming inconsistency in the codebase.
+- `Table` private fields (`Width`, `Height`) use PascalCase instead of the conventional underscore-prefixed camelCase (`_width`, `_height`).
 
-## Code Style
+## Code Style Patterns
 
-**Brace placement:**
-- Inconsistent across the codebase. `GameBoard` mixes Allman-style (opening brace on new line) and K&R-style (opening brace on same line) within the same file:
-  - `TurnLeft()` — K&R: `public void TurnLeft() {`
-  - `TurnRight()` — Allman: `public void TurnRight()\n{`
-- `CommandParser` uses Allman consistently
-- No `.editorconfig` or formatter config detected to enforce a style
+**Expression-bodied members:**
+Used selectively. `Table.IsValidPosition` (`ToyRobot/Table.cs`) uses an expression body:
+```csharp
+public bool IsValidPosition(int x, int y) =>
+    x >= 0 && x < Width && y >= 0 && y < Height;
+```
+`Simulator.IsRobotPlaced` (`ToyRobot/Simulator.cs`) is a one-liner block body that could be expression-bodied:
+```csharp
+public bool IsRobotPlaced () { return RobotPlaced; }
+```
+This is inconsistent; prefer `=> RobotPlaced;`.
 
-**Expression bodies:**
-- Not used; all methods use block bodies even for trivial one-liners (e.g., `IsRobotPlaced`)
+**Brace style:**
+Mixed within the same file. `Simulator.cs` uses K&R (opening brace same line) and Allman (opening brace next line) styles interchangeably.
 
 **`var` usage:**
-- Used consistently for local variables where type is apparent: `var parts`, `var x`, `var y`, `var report`
+Used consistently for local variables where the type is apparent from the right-hand side.
 
 **`out` parameters:**
-- Used in `ParseCommand` and `TryParsePlaceArgs` following the .NET `Try*` pattern
+Used in `CommandParser` (`ToyRobot/CommandParser.cs`) for multi-value returns rather than tuples or records.
 
-**String interpolation:**
-- Used in `Report()`: `$"{Robot.xPos}, {Robot.yPos}, {Robot.direction.ToString()}"`
-- `.ToString()` call on the enum is redundant inside an interpolated string
+**Default parameter values:**
+Used in `Table` (`width = 5`, `height = 5`) and `Simulator` constructors (`x = 5`, `y = 5`).
+
+**Static utility class:**
+`CommandParser` is a `static` class with only `static` methods — appropriate since it holds no state.
 
 **Top-level statements:**
-- `Program.cs` uses C# 9+ top-level statements (no explicit `Main` method)
+`ToyRobot/Program.cs` uses C# top-level statements (no explicit `Program` class or `Main` method).
 
-**Unused scaffolding:**
-- `Commands.cs` is an empty class — a placeholder with no implementation
-- Several unused `using` directives appear in most files (`System.Collections.Generic`, `System.Text`)
+**Unused imports:**
+`Robot.cs`, `Direction.cs`, `Table.cs`, and `Simulator.cs` all include `using System.Collections.Generic` and `using System.Text` that are not used.
 
 ## Error Handling
 
-**Current approach:**
-- Methods return `bool` to signal success/failure (`Place`, `MoveForward`, `TryParsePlaceArgs`)
-- No exceptions are thrown by domain logic
-- `Program.cs` handles invalid commands with `Console.WriteLine` messages in the `default` switch case
-- Null input from `Console.ReadLine()` is handled with the null-coalescing operator: `Console.ReadLine() ?? string.Empty`
+**Approach:** Return-value based. Methods that can fail return `bool` (`Place`, `MoveForward`, `TryParsePlaceArgs`); callers check the result. No exceptions are thrown for invalid input.
 
-**Gaps (annotated with TODO comments):**
-- `CommandParser` has two `// TODO: Error handling` and `// TODO: Add error handling` comments indicating error handling is acknowledged but not yet implemented
-- `Program.cs` has `// TODO: Add some more error messages for when things dont go right`
-- `TurnLeft` and `TurnRight` have no guard for the `Direction.Unset` sentinel — arithmetic on `Unset` would produce an out-of-range enum value silently
+**`Program.cs` behavior:**
+- Invalid PLACE arguments: prints a message to the console.
+- Commands issued before robot is placed: silently ignored (no user feedback).
+- Unknown commands: prints a generic invalid selection message.
+
+**No `try`/`catch` blocks exist anywhere in the codebase.**
+
+**Outstanding TODOs in `ToyRobot/CommandParser.cs`:**
+- `// TODO: Error handling` on `ParseCommand`
+- `// TODO: Add error handling` on `TryParsePlaceArgs`
+
+**Outstanding TODO in `ToyRobot/Program.cs`:**
+- Commented-out code for an initial placement prompt that was never completed.
 
 ## Null Handling
 
-- Null handled defensively at the entry point (`Console.ReadLine() ?? string.Empty`)
-- No nullable reference type annotations (`#nullable enable`) detected — the project does not opt in to C# 8+ nullable analysis
-- `Robot` initializes fields to sentinel values (`xPos = -1`, `yPos = -1`, `direction = Direction.Unset`) rather than using nullable types
+**Null context:** `<Nullable>enable</Nullable>` is set in `ToyRobot.Tests/ToyRobot.Tests.csproj`.
 
-## Notable Inconsistencies
+**Null coalescing:**
+The only null guard in the codebase is in `Program.cs`:
+```csharp
+Console.ReadLine() ?? string.Empty
+```
 
-| Issue | Location |
-|-------|----------|
-| camelCase public properties instead of PascalCase | `ToyRobot/Robot.cs` lines 9-11 |
-| Brace style mixed (K&R vs Allman) | `ToyRobot/GameBoard.cs` |
-| `Commands` class is an empty stub | `ToyRobot/Commands.cs` |
-| Redundant `.ToString()` in string interpolation | `ToyRobot/GameBoard.cs` line 86 |
-| Unused `using` directives in most files | All files under `ToyRobot/` |
-| No formatter or linter config enforcing any of the above | Project root |
+No null checks exist on method arguments. Methods assume valid, non-null inputs.
+
+## Notable Observations
+
+- `Commands.cs` was listed as a source file but does not exist on disk. It appears planned but never created.
+- Turn rotation in `Simulator.TurnLeft`/`TurnRight` (`ToyRobot/Simulator.cs`) relies on the enum's underlying integer ordering (`direction - 1`, `direction + 1`). Reordering `Direction` enum members would silently break rotation logic.
+- `Direction.Unset` and the `RobotPlaced` bool in `Simulator` are redundant representations of the same state (whether the robot has been placed).
+- The `Report` output format (`"1, 2, North"`) is an inline interpolated string with no named constant, making format changes fragile.
 
 ---
 
