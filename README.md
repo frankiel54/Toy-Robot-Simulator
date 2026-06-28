@@ -4,7 +4,9 @@
 
 This is the Toy Robot Simulator console application.
 
-To run it, either load the project in an IDE and run it in debug mode, or run the `.exe` in the `/publish` directory.
+To run it, either load the project in an IDE and run it in debug mode, or run the `.exe` in the `/publish` directory. 
+
+> **Note:** The `publish` directory is included in this repo for the sake of the interview. In a normal scenario it would be gitignored, with the exe produced from CI/CD.
 
 ## Development Process
 
@@ -22,14 +24,14 @@ After mapping the codebase, I used `/gsd-plan-phase` to plan further changes. Th
 
 From that point, roughly 90% of changes were handled by Claude via the Plan → Execute workflow, covering:
 
-- Command parser rebuild
+- Command parser rebuild to create ParsedCommand instead of strings
 - Refactoring `Application` to be independent from `Program`
 - Refactoring `Application` to accommodate unit tests
 - Tests for the application layer
 - Adding user feedback to console messages
 - Refactoring `Application` for readability
 - Refactoring direction calculation and the `Direction` enum
-- Refactoring property names
+- Refactoring property names to be consistent in format
 - Refactoring `Simulator` to own the `Robot`
 - Refactoring `Robot` field encapsulation
 - Code review to identify code smells and bugs
