@@ -12,7 +12,8 @@ C# .NET 10 toy robot simulator. Phases 1–6 delivered the core simulation, CLI 
 - [x] **Phase 4** - Table boundary checking
 - [x] **Phase 5** - Naming consistency fixes
 - [x] **Phase 6** - Robot encapsulation (internal setters, InternalsVisibleTo)
-- [ ] **Phase 7: Code Cleanup** - Fix code smells and general quality issues from post-phase-6 review
+- [x] **Phase 7: Code Cleanup** - Fix code smells and general quality issues from post-phase-6 review
+- [ ] **Phase 8: Domain Model Refactor** - Refactor Robot into an immutable record, remove Direction.Unset sentinel, remove raw X/Y/Facing properties from Simulator in favour of Report()-based verification
 
 ## Phase Details
 
@@ -31,5 +32,22 @@ C# .NET 10 toy robot simulator. Phases 1–6 delivered the core simulation, CLI 
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: Fix 9 code smells (Wave 1 — checkpoint before commit)
-- [ ] 07-02: Fix 14 general quality issues (Wave 2 — after 07-01 committed)
+- [x] 07-01: Fix 9 code smells (Wave 1 — checkpoint before commit)
+- [x] 07-02: Fix 14 general quality issues (Wave 2 — after 07-01 committed)
+
+### Phase 8: Domain Model Refactor
+**Goal**: Refactor Robot into an immutable record type, eliminate the Direction.Unset sentinel value, and remove the raw X/Y/Facing property API from Simulator — tests verify behaviour exclusively via Report().
+**Depends on**: Phase 7
+**Requirements**: REQ-08-01, REQ-08-02, REQ-08-03
+**Success Criteria** (what must be TRUE):
+  1. `Robot` is a C# record with value semantics and no setters
+  2. `Direction.Unset` is removed from the enum; `TryParsePlaceArgs` no longer guards against it
+  3. Default `Robot()` constructor removed; `Simulator` uses `Robot?` (null = unplaced)
+  4. `Simulator.X`, `Simulator.Y`, and `Simulator.Facing` properties removed
+  5. All tests that previously used X/Y/Facing are rewritten to assert via `Report()`
+  6. All 74 tests pass (adjusted count if sentinel test cases removed)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Refactor Direction enum and Robot to record; update Simulator and CommandParser (Wave 1)
+- [ ] 08-02-PLAN.md — Rewrite DirectionExtensionsTests, RobotTests, SimulatorTests for new API (Wave 2)
