@@ -68,7 +68,7 @@ namespace ToyRobot
                         _output.WriteLine("Turned right.");
                         break;
                     case CommandType.Report:
-                        _output.WriteLine(_simulator.Report());
+                        _output.WriteLine($"{_simulator.X}, {_simulator.Y}, {_simulator.Facing}");
                         break;
                     default:
                         _output.WriteLine();

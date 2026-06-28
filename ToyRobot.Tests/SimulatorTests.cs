@@ -13,7 +13,9 @@ namespace ToyRobot.Tests
 
             Assert.True(result);
             Assert.True(simulator.IsPlaced);
-            Assert.Equal("1, 2, North", simulator.Report());
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(2, simulator.Y);
+            Assert.Equal(Direction.North, simulator.Facing);
         }
 
         [Fact]
@@ -35,7 +37,9 @@ namespace ToyRobot.Tests
             var result = simulator.MoveForward();
 
             Assert.True(result);
-            Assert.Equal("1, 2, North", simulator.Report());
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(2, simulator.Y);
+            Assert.Equal(Direction.North, simulator.Facing);
         }
 
         [Fact]
@@ -47,7 +51,9 @@ namespace ToyRobot.Tests
             var result = simulator.MoveForward();
 
             Assert.False(result);
-            Assert.Equal("0, 4, North", simulator.Report());
+            Assert.Equal(0, simulator.X);
+            Assert.Equal(4, simulator.Y);
+            Assert.Equal(Direction.North, simulator.Facing);
         }
 
         [Theory]
@@ -59,7 +65,9 @@ namespace ToyRobot.Tests
 
             simulator.TurnLeft();
 
-            Assert.Equal($"1, 1, {expected}", simulator.Report());
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(1, simulator.Y);
+            Assert.Equal(expected, simulator.Facing);
         }
 
         public static TheoryData<Direction, Direction> TurnLeftData() => new()
@@ -79,7 +87,9 @@ namespace ToyRobot.Tests
 
             simulator.TurnRight();
 
-            Assert.Equal($"1, 1, {expected}", simulator.Report());
+            Assert.Equal(1, simulator.X);
+            Assert.Equal(1, simulator.Y);
+            Assert.Equal(expected, simulator.Facing);
         }
 
         public static TheoryData<Direction, Direction> TurnRightData() => new()
@@ -91,28 +101,30 @@ namespace ToyRobot.Tests
         };
 
         [Theory]
-        [MemberData(nameof(ReportData))]
-        public void Report(int x, int y, Direction direction, string expected)
+        [MemberData(nameof(PlaceData))]
+        public void Place_Should_Set_State(int x, int y, Direction direction)
         {
             var simulator = new Simulator();
             simulator.Place(x, y, direction);
 
-            Assert.Equal(expected, simulator.Report());
+            Assert.Equal(x, simulator.X);
+            Assert.Equal(y, simulator.Y);
+            Assert.Equal(direction, simulator.Facing);
         }
 
-        public static TheoryData<int, int, Direction, string> ReportData() => new()
+        public static TheoryData<int, int, Direction> PlaceData() => new()
         {
-            { 1, 2, Direction.South, "1, 2, South"},
-            { 3, 3, Direction.West, "3, 3, West"},
-            { 3, 1, Direction.North, "3, 1, North"},
+            { 1, 2, Direction.South },
+            { 3, 3, Direction.West },
+            { 3, 1, Direction.North },
         };
 
         [Fact]
-        public void Report_Should_Throw_When_Robot_Not_Placed()
+        public void X_Should_Throw_When_Robot_Not_Placed()
         {
             var simulator = new Simulator();
 
-            Assert.Throws<InvalidOperationException>(() => simulator.Report());
+            Assert.Throws<InvalidOperationException>(() => simulator.X);
         }
 
         [Fact]
@@ -123,7 +135,9 @@ namespace ToyRobot.Tests
 
             simulator.Place(3, 3, Direction.East);
 
-            Assert.Equal("3, 3, East", simulator.Report());
+            Assert.Equal(3, simulator.X);
+            Assert.Equal(3, simulator.Y);
+            Assert.Equal(Direction.East, simulator.Facing);
         }
     }
 }
