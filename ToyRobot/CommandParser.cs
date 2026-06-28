@@ -34,13 +34,13 @@ namespace ToyRobot
         {
             x = 0; y = 0; direction = default;
             var parts = args.Split(',');
-            if (parts.Length != 3
-                || !int.TryParse(parts[0].Trim(), out x)
-                || !int.TryParse(parts[1].Trim(), out y)
-                || !Enum.TryParse<Direction>(parts[2].Trim(), ignoreCase: true, out direction))
-                return false;
+            if (parts.Length == 3
+                && int.TryParse(parts[0].Trim(), out x)
+                && int.TryParse(parts[1].Trim(), out y)
+                && Enum.TryParse<Direction>(parts[2].Trim(), ignoreCase: true, out direction))
+                return true;
 
-            return true;
+            return false;
         }
     }
 }
