@@ -42,12 +42,13 @@ namespace ToyRobot
                     }
                     else
                     {
-                        _output.WriteLine("\nInvalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
+                        _output.WriteLine();
+                        _output.WriteLine("Invalid PLACE arguments. Expected format: PLACE X,Y,DIRECTION");
                     }
                     continue;
                 }
 
-                if (parsed.Type != CommandType.Unknown && !_simulator.IsRobotPlaced())
+                if (parsed.Type != CommandType.Unknown && !_simulator.IsPlaced)
                 {
                     _output.WriteLine("Robot has not been placed yet.");
                     continue;
@@ -73,7 +74,8 @@ namespace ToyRobot
                         _output.WriteLine(_simulator.Report());
                         break;
                     default:
-                        _output.WriteLine("\nInvalid selection. Please try again.");
+                        _output.WriteLine();
+                        _output.WriteLine("Invalid selection. Please try again.");
                         break;
                 }
             }

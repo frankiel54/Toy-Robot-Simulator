@@ -36,9 +36,13 @@ namespace ToyRobot
             return true;
         }
 
-        public string Report() => $"{Robot.XPos}, {Robot.YPos}, {Robot.Direction}";
+        public string Report()
+        {
+            if (!RobotPlaced) throw new InvalidOperationException("Robot has not been placed.");
+            return $"{Robot.XPos}, {Robot.YPos}, {Robot.Direction}";
+        }
 
-        public bool IsRobotPlaced() => RobotPlaced;
+        public bool IsPlaced => RobotPlaced;
 
         public int X => Robot.XPos;
         public int Y => Robot.YPos;

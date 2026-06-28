@@ -117,5 +117,13 @@ namespace ToyRobot.Tests
             { 3, 3, Direction.West, "3, 3, West"},
             { 3, 1, Direction.North, "3, 1, North"},
         };
+
+        [Fact]
+        public void Report_Should_Throw_When_Robot_Not_Placed()
+        {
+            var simulator = new Simulator();
+
+            Assert.Throws<InvalidOperationException>(() => simulator.Report());
+        }
     }
 }

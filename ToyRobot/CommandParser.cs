@@ -21,7 +21,7 @@ namespace ToyRobot
             if (type == CommandType.Place)
             {
                 CommandOptions? options = TryParsePlaceArgs(rawArgs, out int x, out int y, out Direction facing)
-                    ? new CommandOptions { X = x, Y = y, Facing = facing }
+                    ? new CommandOptions(x, y, facing)
                     : null;
                 return new ParsedCommand(CommandType.Place, options);
             }
@@ -29,7 +29,7 @@ namespace ToyRobot
             return new ParsedCommand(type);
         }
 
-        public static bool TryParsePlaceArgs(string args, out int x, out int y, out Direction direction)
+        private static bool TryParsePlaceArgs(string args, out int x, out int y, out Direction direction)
         {
             x = 0; y = 0; direction = default;
             var parts = args.Split(',');

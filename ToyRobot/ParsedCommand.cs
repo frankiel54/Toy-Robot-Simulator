@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ToyRobot
 {
     public enum CommandType
@@ -14,20 +10,7 @@ namespace ToyRobot
         Unknown,
     }
 
-    public class ParsedCommand {
-        public CommandType Type { get; }
-        public CommandOptions? Options { get; }
+    public record ParsedCommand(CommandType Type, CommandOptions? Options = null);
 
-        public ParsedCommand(CommandType type, CommandOptions? options = null)
-        {
-            Type = type;
-            Options = options;
-        }
-    }
-
-    public class CommandOptions {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public Direction Facing { get; set; }
-    }
+    public record CommandOptions(int X, int Y, Direction Facing);
 }

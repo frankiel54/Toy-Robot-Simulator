@@ -2,8 +2,8 @@ namespace ToyRobot
 {
     public class Table
     {
-        private int _width;
-        private int _height;
+        private readonly int _width;
+        private readonly int _height;
 
         public Table(int width = 5, int height = 5)
         {

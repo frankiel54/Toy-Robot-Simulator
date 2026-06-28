@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Text;
-using Xunit;
+﻿using Xunit;
 
 namespace ToyRobot.Tests
 {
@@ -25,24 +21,6 @@ namespace ToyRobot.Tests
             { "RIGHT",           CommandType.Right },
             { "REPORT",          CommandType.Report },
             { "COMMAND1",        CommandType.Unknown },
-        };
-
-        [Theory]
-        [MemberData(nameof(TryParsePlaceArgsData))]
-        public void TryParsePlaceArgs_Should_Parse(string rawArgs, int expectedX, int expectedY, Direction expectedDirection)
-        {
-            CommandParser.TryParsePlaceArgs(rawArgs, out int x, out int y, out Direction direction);
-
-            Assert.Equal(expectedX, x);
-            Assert.Equal(expectedY, y);
-            Assert.Equal(expectedDirection, direction);
-        }
-
-        public static TheoryData<string, int, int, Direction> TryParsePlaceArgsData() => new()
-        {
-            { "1,2,NORTH", 1, 2, Direction.North },
-            { "8,5,SOUTH", 8, 5, Direction.South },
-            { "99,12,EAST", 99, 12, Direction.East },
         };
 
         [Theory]
