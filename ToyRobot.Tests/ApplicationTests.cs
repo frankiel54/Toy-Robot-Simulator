@@ -129,5 +129,30 @@ namespace ToyRobot.Tests
 
             Assert.Contains("1, 1, East", result);
         }
+
+        [Fact]
+        public void Place_Then_Move_Should_Advance_Position()
+        {
+            var result = Run("PLACE 0,0,NORTH", "MOVE", "REPORT");
+
+            Assert.Contains("0, 1, North", result);
+        }
+
+        [Fact]
+        public void Place_Then_Left_Should_Rotate_Direction()
+        {
+            var result = Run("PLACE 0,0,NORTH", "LEFT", "REPORT");
+
+            Assert.Contains("0, 0, West", result);
+        }
+
+        [Fact]
+        public void Complex_Sequence_Should_Produce_Correct_Final_Position()
+        {
+            // PLACE 1,2,EAST → MOVE (2,2,E) → MOVE (3,2,E) → LEFT (3,2,N) → MOVE (3,3,N) → REPORT
+            var result = Run("PLACE 1,2,EAST", "MOVE", "MOVE", "LEFT", "MOVE", "REPORT");
+
+            Assert.Contains("3, 3, North", result);
+        }
     }
 }
