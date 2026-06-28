@@ -2,11 +2,14 @@ namespace ToyRobot
 {
     public class Simulator
     {
+        public const int DefaultWidth  = 5;
+        public const int DefaultHeight = 5;
+
         private Robot Robot { get; } = new Robot();
         private bool RobotPlaced { get; set; }
         private Table Table { get; }
 
-        public Simulator(int width = 5, int height = 5)
+        public Simulator(int width = DefaultWidth, int height = DefaultHeight)
         {
             Table = new Table(width, height);
         }
