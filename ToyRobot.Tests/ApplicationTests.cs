@@ -18,7 +18,7 @@ namespace ToyRobot.Tests
             var result = Run();
 
             Assert.Contains("Toy Robot app", result);
-            Assert.Contains("PLACE X,Y,Z", result);
+            Assert.Contains("PLACE X,Y,F", result);
         }
 
         [Fact]
