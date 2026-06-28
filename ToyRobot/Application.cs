@@ -16,7 +16,8 @@ namespace ToyRobot
 
         public void Run()
         {
-            _output.WriteLine("Toy Robot app");
+            _output.WriteLine("Toy Robot app: Navigate a toy robot across a tabletop!");
+            _output.WriteLine($"Table size: {Simulator.DefaultWidth}x{Simulator.DefaultHeight}");
             _output.WriteLine("Here are the valid commands:");
             _output.WriteLine("PLACE X,Y,F");
             _output.WriteLine("MOVE");
