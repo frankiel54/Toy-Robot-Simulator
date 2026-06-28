@@ -18,7 +18,7 @@ namespace ToyRobot
         {
             _output.WriteLine("Toy Robot app");
             _output.WriteLine("Here are the valid commands:");
-            _output.WriteLine("PLACE X,Y,Z");
+            _output.WriteLine("PLACE X,Y,F");
             _output.WriteLine("MOVE");
             _output.WriteLine("LEFT");
             _output.WriteLine("RIGHT");
