@@ -11,10 +11,9 @@ namespace ToyRobot.Tests
             var simulator = new Simulator();
             var result = simulator.Place(1, 2, Direction.North);
 
-            Assert.Equal(Direction.North, simulator.Facing);
-            Assert.Equal(1, simulator.X);
-            Assert.Equal(2, simulator.Y);
             Assert.True(result);
+            Assert.True(simulator.IsPlaced);
+            Assert.Equal("1, 2, North", simulator.Report());
         }
 
         [Fact]
@@ -23,10 +22,8 @@ namespace ToyRobot.Tests
             var simulator = new Simulator();
             var result = simulator.Place(1, 6, Direction.North);
 
-            Assert.Equal(Direction.Unset, simulator.Facing);
-            Assert.Equal(-1, simulator.X);
-            Assert.Equal(-1, simulator.Y);
             Assert.False(result);
+            Assert.False(simulator.IsPlaced);
         }
 
         [Fact]
@@ -37,10 +34,8 @@ namespace ToyRobot.Tests
 
             var result = simulator.MoveForward();
 
-            Assert.Equal(Direction.North, simulator.Facing);
-            Assert.Equal(1, simulator.X);
-            Assert.Equal(2, simulator.Y);
             Assert.True(result);
+            Assert.Equal("1, 2, North", simulator.Report());
         }
 
         [Fact]
@@ -51,10 +46,8 @@ namespace ToyRobot.Tests
 
             var result = simulator.MoveForward();
 
-            Assert.Equal(Direction.North, simulator.Facing);
-            Assert.Equal(0, simulator.X);
-            Assert.Equal(4, simulator.Y);
             Assert.False(result);
+            Assert.Equal("0, 4, North", simulator.Report());
         }
 
         [Theory]
@@ -66,9 +59,7 @@ namespace ToyRobot.Tests
 
             simulator.TurnLeft();
 
-            Assert.Equal(expected, simulator.Facing);
-            Assert.Equal(1, simulator.X);
-            Assert.Equal(1, simulator.Y);
+            Assert.Equal($"1, 1, {expected}", simulator.Report());
         }
 
         public static TheoryData<Direction, Direction> TurnLeftData() => new()
@@ -88,9 +79,7 @@ namespace ToyRobot.Tests
 
             simulator.TurnRight();
 
-            Assert.Equal(expected, simulator.Facing);
-            Assert.Equal(1, simulator.X);
-            Assert.Equal(1, simulator.Y);
+            Assert.Equal($"1, 1, {expected}", simulator.Report());
         }
 
         public static TheoryData<Direction, Direction> TurnRightData() => new()
@@ -134,9 +123,7 @@ namespace ToyRobot.Tests
 
             simulator.Place(3, 3, Direction.East);
 
-            Assert.Equal(3, simulator.X);
-            Assert.Equal(3, simulator.Y);
-            Assert.Equal(Direction.East, simulator.Facing);
+            Assert.Equal("3, 3, East", simulator.Report());
         }
     }
 }

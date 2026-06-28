@@ -5,8 +5,7 @@ namespace ToyRobot
         public const int DefaultWidth  = 5;
         public const int DefaultHeight = 5;
 
-        private Robot Robot { get; } = new Robot();
-        private bool RobotPlaced { get; set; }
+        private Robot? _robot;
         private Table Table { get; }
 
         public Simulator(int width = DefaultWidth, int height = DefaultHeight)
@@ -19,36 +18,41 @@ namespace ToyRobot
             if (!Table.IsValidPosition(x, y))
                 return false;
 
-            Robot.PlaceAt(x, y, direction);
-            RobotPlaced = true;
+            _robot = new Robot(x, y, direction);
 
             return true;
         }
 
-        public void TurnLeft()  => Robot.TurnLeft();
+        public void TurnLeft()
+        {
+            if (_robot is not null)
+                _robot = _robot with { Direction = _robot.Direction.TurnLeft() };
+        }
 
-        public void TurnRight() => Robot.TurnRight();
+        public void TurnRight()
+        {
+            if (_robot is not null)
+                _robot = _robot with { Direction = _robot.Direction.TurnRight() };
+        }
 
         public bool MoveForward()
         {
-            var (x, y) = Robot.GetNextPosition();
+            if (_robot is null) return false;
+
+            var (x, y) = _robot.GetNextPosition();
 
             if (!Table.IsValidPosition(x, y)) return false;
 
-            Robot.MoveTo(x, y);
+            _robot = _robot with { XPos = x, YPos = y };
             return true;
         }
 
         public string Report()
         {
-            if (!RobotPlaced) throw new InvalidOperationException("Robot has not been placed.");
-            return $"{Robot.XPos}, {Robot.YPos}, {Robot.Direction}";
+            if (_robot is null) throw new InvalidOperationException("Robot has not been placed.");
+            return $"{_robot.XPos}, {_robot.YPos}, {_robot.Direction}";
         }
 
-        public bool IsPlaced => RobotPlaced;
-
-        public int X => Robot.XPos;
-        public int Y => Robot.YPos;
-        public Direction Facing => Robot.Direction;
+        public bool IsPlaced => _robot is not null;
     }
 }

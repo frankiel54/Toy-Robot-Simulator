@@ -40,12 +40,6 @@ namespace ToyRobot
                 || !Enum.TryParse<Direction>(parts[2].Trim(), ignoreCase: true, out direction))
                 return false;
 
-            if (direction == Direction.Unset)
-            {
-                x = 0; y = 0; direction = default;
-                return false;
-            }
-
             return true;
         }
     }

@@ -13,7 +13,7 @@ C# .NET 10 toy robot simulator. Phases 1–6 delivered the core simulation, CLI 
 - [x] **Phase 5** - Naming consistency fixes
 - [x] **Phase 6** - Robot encapsulation (internal setters, InternalsVisibleTo)
 - [x] **Phase 7: Code Cleanup** - Fix code smells and general quality issues from post-phase-6 review
-- [ ] **Phase 8: Domain Model Refactor** - Refactor Robot into an immutable record, remove Direction.Unset sentinel, remove raw X/Y/Facing properties from Simulator in favour of Report()-based verification
+- [x] **Phase 8: Domain Model Refactor** - Refactor Robot into an immutable record, remove Direction.Unset sentinel, remove raw X/Y/Facing properties from Simulator in favour of Report()-based verification (completed 2026-06-28)
 
 ## Phase Details
 
@@ -53,13 +53,13 @@ Plans:
   5. All tests that previously used X/Y/Facing are rewritten to assert via `Report()`
   6. All 74 tests pass (adjusted count if sentinel test cases removed)
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 08-01-PLAN.md — Refactor Direction enum and Robot to record; update Simulator and CommandParser (Wave 1)
+- [x] 08-01-PLAN.md — Refactor Direction enum and Robot to record; update Simulator and CommandParser (Wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 08-02-PLAN.md — Rewrite DirectionExtensionsTests, RobotTests, SimulatorTests for new API (Wave 2)
+- [x] 08-02-PLAN.md — Rewrite DirectionExtensionsTests, RobotTests, SimulatorTests for new API (Wave 2)

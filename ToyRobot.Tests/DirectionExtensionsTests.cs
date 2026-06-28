@@ -17,7 +17,6 @@ namespace ToyRobot.Tests
             { Direction.West,  Direction.South },
             { Direction.South, Direction.East  },
             { Direction.East,  Direction.North },
-            { Direction.Unset, Direction.Unset },
         };
 
         [Theory]
@@ -33,7 +32,6 @@ namespace ToyRobot.Tests
             { Direction.East,  Direction.South },
             { Direction.South, Direction.West  },
             { Direction.West,  Direction.North },
-            { Direction.Unset, Direction.Unset },
         };
 
     }
