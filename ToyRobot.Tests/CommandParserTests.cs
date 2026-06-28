@@ -50,5 +50,22 @@ namespace ToyRobot.Tests
             Assert.Equal(CommandType.Place, result.Type);
             Assert.Null(result.Options);
         }
+
+        [Fact]
+        public void ParseCommand_Should_Return_Place_With_Null_Options_For_Unset_Direction()
+        {
+            var result = CommandParser.ParseCommand("PLACE 1,2,UNSET");
+
+            Assert.Equal(CommandType.Place, result.Type);
+            Assert.Null(result.Options);
+        }
+
+        [Fact]
+        public void ParseCommand_Should_Parse_Command_With_Leading_Whitespace()
+        {
+            var result = CommandParser.ParseCommand(" MOVE");
+
+            Assert.Equal(CommandType.Move, result.Type);
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace ToyRobot
     {
         public static ParsedCommand ParseCommand(string input)
         {
+            input = input.Trim();
             var parts = input.Split(' ', 2);
             var name = parts[0].ToUpper();
             var rawArgs = parts.Length > 1 ? parts[1] : string.Empty;
@@ -33,10 +34,19 @@ namespace ToyRobot
         {
             x = 0; y = 0; direction = default;
             var parts = args.Split(',');
-            return parts.Length == 3
-                && int.TryParse(parts[0].Trim(), out x)
-                && int.TryParse(parts[1].Trim(), out y)
-                && Enum.TryParse<Direction>(parts[2].Trim(), ignoreCase: true, out direction);
+            if (parts.Length != 3
+                || !int.TryParse(parts[0].Trim(), out x)
+                || !int.TryParse(parts[1].Trim(), out y)
+                || !Enum.TryParse<Direction>(parts[2].Trim(), ignoreCase: true, out direction))
+                return false;
+
+            if (direction == Direction.Unset)
+            {
+                x = 0; y = 0; direction = default;
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -24,11 +24,8 @@ namespace ToyRobot
             _output.WriteLine("RIGHT");
             _output.WriteLine("REPORT");
 
-            while (true)
+            while (_input.ReadLine() is { } line)
             {
-                string? line = _input.ReadLine();
-                if (line is null) break;
-
                 var parsed = CommandParser.ParseCommand(line);
 
                 if (parsed.Type == CommandType.Place)

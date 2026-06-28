@@ -81,7 +81,7 @@ namespace ToyRobot.Tests
 
         [Theory]
         [MemberData(nameof(TurnRightData))]
-        public void Turn_Left_Should_Turn_Right(Direction start, Direction expected)
+        public void Turn_Right_Should_Turn_Right(Direction start, Direction expected)
         {
             var simulator = new Simulator();
             simulator.Place(1, 1, start);
@@ -124,6 +124,19 @@ namespace ToyRobot.Tests
             var simulator = new Simulator();
 
             Assert.Throws<InvalidOperationException>(() => simulator.Report());
+        }
+
+        [Fact]
+        public void Place_Should_Update_Position_When_Placed_Again()
+        {
+            var simulator = new Simulator();
+            simulator.Place(1, 1, Direction.North);
+
+            simulator.Place(3, 3, Direction.East);
+
+            Assert.Equal(3, simulator.X);
+            Assert.Equal(3, simulator.Y);
+            Assert.Equal(Direction.East, simulator.Facing);
         }
     }
 }
